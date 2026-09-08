@@ -10,21 +10,23 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
             $table->string('first_name');
             $table->string('last_name')->nullable();
             $table->string('email')->unique();
-            $table->string('mobile', 15)->nullable();
-
+            $table->string('mobile', 13)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            $table->enum('type', ['admin', 'customer'])->default('customer');
+            $table->enum('type', [
+                'admin',
+                'company',
+                'customer'
+            ])->default('customer');
+
             $table->boolean('is_admin')->default(false);
             $table->boolean('status')->default(true);
-
+            $table->string('company_name')->nullable();
             $table->string('profile_image')->nullable();
-
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
@@ -38,9 +40,11 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
+
             $table->foreignId('user_id')
                 ->nullable()
-                ->index();
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();

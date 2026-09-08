@@ -4,21 +4,29 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        User::create([
-            'first_name' => 'Ankesh',
-            'last_name' => 'Kumar',
-            'email' => 'ankeshcoxfuture@gmail.com',
-            'mobile' => '9876543210',
-            'password' => 'ankesh@123',
-            'type' => 'admin',
-            'is_admin' => true,
-            'status' => true,
-            'profile_image' => null,
-        ]);
+        User::updateOrCreate(
+            [
+                'email' => 'admin@gmail.com',
+            ],
+            [
+                'first_name' => 'admin',
+                'last_name' => 'denmaq',
+                'mobile' => '9876543210',
+                'password' => Hash::make('12345678'),
+                'type' => 'admin',
+                'is_admin' => true,
+                'status' => true,
+                'profile_image' => null,
+            ]
+        );
     }
 }
