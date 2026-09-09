@@ -4,657 +4,279 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="container-fluid role-page">
 
-```
-{{-- Page Header --}}
-<div class="d-flex justify-content-between align-items-center mb-4">
-
+<div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h2 class="mb-1">
-            Create Role
-        </h2>
-
-        <p class="text-muted mb-0">
-            Create a new role and assign permissions
-        </p>
+        <h2 class="page-title">Create Role</h2>
+        <p class="page-description">Create a new role and assign permissions</p>
     </div>
 
-    <a href="{{ route('admin.roles.index') }}"
-       class="btn btn-light">
-
-        <i data-feather="arrow-left" style="width: 16px;"></i>
-
-        <span class="ms-1">
-            Back
-        </span>
-
+    <a href="{{ route('admin.roles.index') }}" class="btn btn-light">
+        <i data-feather="arrow-left"></i>
+        <span class="ms-1">Back</span>
     </a>
-
 </div>
 
-
-{{-- Validation Errors --}}
 @if($errors->any())
-
-    <div class="alert alert-danger alert-dismissible fade show"
-         role="alert">
-
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <div class="d-flex">
-
-            <i data-feather="alert-circle"
-               class="me-2"
-               style="width: 20px;">
-            </i>
-
+            <i data-feather="alert-circle" class="me-2"></i>
             <div>
-
-                <strong>
-                    Please fix the following errors:
-                </strong>
-
+                <strong>Please fix the following errors:</strong>
                 <ul class="mb-0 mt-2">
-
                     @foreach($errors->all() as $error)
-
-                        <li>
-                            {{ $error }}
-                        </li>
-
+                        <li>{{ $error }}</li>
                     @endforeach
-
                 </ul>
-
             </div>
-
         </div>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="alert">
-        </button>
-
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-
 @endif
 
-
-<form action="{{ route('admin.roles.store') }}"
-      method="POST">
-
+<form action="{{ route('admin.roles.store') }}" method="POST">
     @csrf
 
-
-    {{-- ========================================================= --}}
-    {{-- Role Information --}}
-    {{-- ========================================================= --}}
-
-    <div class="card border-0 shadow-sm mb-4">
-
-        <div class="card-header bg-white border-0 py-3">
-
-            <h5 class="mb-0">
-                Role Information
-            </h5>
-
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Role Information</h5>
+            <small>Enter basic information for this role.</small>
         </div>
 
-
         <div class="card-body">
-
             <div class="row">
 
-                {{-- Role Name --}}
                 <div class="col-md-6 mb-3">
-
-                    <label for="name"
-                           class="form-label">
-
-                        Role Name
-
-                        <span class="text-danger">
-                            *
-                        </span>
-
+                    <label for="name" class="form-label">
+                        Role Name <span class="text-danger">*</span>
                     </label>
 
-                    <input type="text"
-                           name="name"
-                           id="name"
-                           class="form-control @error('name') is-invalid @enderror"
-                           value="{{ old('name') }}"
-                           placeholder="Enter role name"
-                           required>
+                    <input type="text" name="name" id="name"
+                        class="form-control @error('name') is-invalid @enderror"
+                        value="{{ old('name') }}"
+                        placeholder="Enter role name"
+                        required>
 
                     @error('name')
-
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-
                 </div>
 
-
-                {{-- Role Alias --}}
                 <div class="col-md-6 mb-3">
+                    <label for="name_alias" class="form-label">Role Alias</label>
 
-                    <label for="name_alias"
-                           class="form-label">
-
-                        Role Alias
-
-                    </label>
-
-                    <input type="text"
-                           name="name_alias"
-                           id="name_alias"
-                           class="form-control @error('name_alias') is-invalid @enderror"
-                           value="{{ old('name_alias') }}"
-                           placeholder="Enter role alias">
+                    <input type="text" name="name_alias" id="name_alias"
+                        class="form-control @error('name_alias') is-invalid @enderror"
+                        value="{{ old('name_alias') }}"
+                        placeholder="Enter role alias">
 
                     @error('name_alias')
-
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-
                 </div>
 
-
-                {{-- Icon --}}
                 <div class="col-md-6 mb-3">
+                    <label for="icon" class="form-label">Icon</label>
 
-                    <label for="icon"
-                           class="form-label">
+                    <input type="text" name="icon" id="icon"
+                        class="form-control @error('icon') is-invalid @enderror"
+                        value="{{ old('icon') }}"
+                        placeholder="Example: users">
 
-                        Icon
-
-                    </label>
-
-                    <input type="text"
-                           name="icon"
-                           id="icon"
-                           class="form-control @error('icon') is-invalid @enderror"
-                           value="{{ old('icon') }}"
-                           placeholder="Example: users">
-
-                    <small class="text-muted">
-                        Enter Feather icon name, for example:
-                        <strong>users</strong>,
-                        <strong>shield</strong>,
-                        <strong>user</strong>.
-                    </small>
+                    <div class="form-text">Use Feather icon name such as users, shield or user.</div>
 
                     @error('icon')
-
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-
                 </div>
 
-
-                {{-- Position --}}
                 <div class="col-md-3 mb-3">
+                    <label for="position" class="form-label">Position</label>
 
-                    <label for="position"
-                           class="form-label">
-
-                        Position
-
-                    </label>
-
-                    <input type="number"
-                           name="position"
-                           id="position"
-                           class="form-control @error('position') is-invalid @enderror"
-                           value="{{ old('position', 0) }}"
-                           min="0">
+                    <input type="number" name="position" id="position"
+                        class="form-control @error('position') is-invalid @enderror"
+                        value="{{ old('position', 0) }}"
+                        min="0">
 
                     @error('position')
-
-                        <div class="invalid-feedback">
-                            {{ $message }}
-                        </div>
-
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-
                 </div>
 
-
-                {{-- Status --}}
                 <div class="col-md-3 mb-3">
-
-                    <label class="form-label d-block">
-                        Status
-                    </label>
+                    <label class="form-label d-block">Status</label>
 
                     <div class="form-check form-switch mt-2">
-
                         <input type="checkbox"
-                               name="status"
-                               value="1"
-                               class="form-check-input"
-                               id="status"
-                               {{ old('status', 1) ? 'checked' : '' }}>
+                            name="status"
+                            value="1"
+                            class="form-check-input"
+                            id="status"
+                            {{ old('status', 1) ? 'checked' : '' }}>
 
-                        <label class="form-check-label"
-                               for="status">
-
-                            Active
-
-                        </label>
-
+                        <label class="form-check-label" for="status">Active</label>
                     </div>
-
                 </div>
 
             </div>
-
         </div>
-
     </div>
 
-
-    {{-- ========================================================= --}}
-    {{-- Permissions --}}
-    {{-- ========================================================= --}}
-
-    <div class="card border-0 shadow-sm mb-4">
-
-        <div class="card-header bg-white border-0 py-3">
-
-            <div class="d-flex justify-content-between align-items-center">
-
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="permissions-header d-flex justify-content-between align-items-center">
                 <div>
-
-                    <h5 class="mb-0">
-                        Permissions
-                    </h5>
-
-                    <small class="text-muted">
-                        Select permissions for this role.
-                    </small>
-
+                    <h5>Permissions</h5>
+                    <small>Select permissions for this role.</small>
                 </div>
 
-
-                <div class="d-flex gap-2">
-
-                    <button type="button"
-                            class="btn btn-sm btn-outline-primary"
-                            id="selectAll">
-
-                        <i data-feather="check-square"
-                           style="width: 15px;">
-                        </i>
-
-                        <span class="ms-1">
-                            Select All
-                        </span>
-
+                <div class="permission-actions d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="selectAll">
+                        <i data-feather="check-square"></i>
+                        <span class="ms-1">Select All</span>
                     </button>
 
-
-                    <button type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            id="deselectAll">
-
-                        <i data-feather="square"
-                           style="width: 15px;">
-                        </i>
-
-                        <span class="ms-1">
-                            Clear All
-                        </span>
-
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">
+                        <i data-feather="square"></i>
+                        <span class="ms-1">Clear All</span>
                     </button>
-
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="card-body">
-
             @forelse($permissions as $module => $modulePermissions)
 
                 @php
                     $moduleSlug = Str::slug($module);
                 @endphp
 
+                <div class="permission-module">
 
-                <div class="border rounded p-3 mb-3 permission-module">
-
-                    {{-- Module Header --}}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-
-                        <h6 class="mb-0 text-primary">
-
-                            <i data-feather="folder"
-                               style="width: 16px;">
-                            </i>
-
-                            <span class="ms-1">
-                                {{ $module }}
-                            </span>
-
+                    <div class="module-header">
+                        <h6 class="module-title">
+                            <i data-feather="folder"></i>
+                            <span>{{ $module }}</span>
                         </h6>
 
-
-                        <div class="form-check">
-
+                        <div class="module-select">
                             <input type="checkbox"
-                                   class="form-check-input module-checkbox"
-                                   data-module="{{ $moduleSlug }}"
-                                   id="module_{{ $moduleSlug }}">
+                                class="form-check-input module-checkbox"
+                                data-module="{{ $moduleSlug }}"
+                                id="module_{{ $moduleSlug }}">
 
-                            <label class="form-check-label"
-                                   for="module_{{ $moduleSlug }}">
-
+                            <label for="module_{{ $moduleSlug }}">
                                 Select Module
-
                             </label>
-
                         </div>
-
                     </div>
 
-
-                    {{-- Module Permissions --}}
-                    <div class="row">
-
+                    <div class="row g-2">
                         @foreach($modulePermissions as $permission)
 
-                            <div class="col-md-3 col-sm-6 mb-2">
+                            <div class="col-xl-3 col-lg-4 col-md-6">
+                                <div class="permission-item">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                            name="permissions[]"
+                                            value="{{ $permission->id }}"
+                                            class="form-check-input permission-checkbox permission-{{ $moduleSlug }}"
+                                            id="permission_{{ $permission->id }}"
+                                            {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
 
-                                <div class="form-check">
-
-                                    <input type="checkbox"
-                                           name="permissions[]"
-                                           value="{{ $permission->id }}"
-                                           class="form-check-input permission-checkbox permission-{{ $moduleSlug }}"
-                                           id="permission_{{ $permission->id }}"
-                                           {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
-
-                                    <label class="form-check-label"
-                                           for="permission_{{ $permission->id }}">
-
-                                        {{ $permission->name }}
-
-                                    </label>
-
+                                        <label class="form-check-label"
+                                            for="permission_{{ $permission->id }}">
+                                            {{ $permission->name }}
+                                        </label>
+                                    </div>
                                 </div>
-
                             </div>
 
                         @endforeach
-
                     </div>
 
                 </div>
 
             @empty
 
-                <div class="text-center py-5">
-
-                    <i data-feather="shield-off"
-                       style="width: 45px; height: 45px;"
-                       class="text-muted mb-3">
-                    </i>
-
-                    <h5 class="text-muted">
-                        No Permissions Available
-                    </h5>
-
-                    <p class="text-muted mb-0">
-                        Please create permissions before creating a role.
-                    </p>
-
+                <div class="empty-permission">
+                    <i data-feather="shield-off"></i>
+                    <h5>No Permissions Available</h5>
+                    <p>Please create permissions before creating a role.</p>
                 </div>
 
             @endforelse
-
         </div>
-
     </div>
 
-
-    {{-- ========================================================= --}}
-    {{-- Form Buttons --}}
-    {{-- ========================================================= --}}
-
-    <div class="d-flex justify-content-end gap-2 mb-4">
-
-        <a href="{{ route('admin.roles.index') }}"
-           class="btn btn-light">
-
-            <i data-feather="x"
-               style="width: 16px;">
-            </i>
-
-            <span class="ms-1">
-                Cancel
-            </span>
-
+    <div class="form-footer">
+        <a href="{{ route('admin.roles.index') }}" class="btn btn-light">
+            <i data-feather="x"></i>
+            <span class="ms-1">Cancel</span>
         </a>
 
-
-        <button type="submit"
-                class="btn btn-primary">
-
-            <i data-feather="save"
-               style="width: 16px;">
-            </i>
-
-            <span class="ms-1">
-                Create Role
-            </span>
-
+        <button type="submit" class="btn btn-primary">
+            <i data-feather="save"></i>
+            <span class="ms-1">Create Role</span>
         </button>
-
     </div>
 
 </form>
-```
 
 </div>
-
 @endsection
 
-@push('scripts')
-
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const deselectAll = document.getElementById('deselectAll');
+    const modules = document.querySelectorAll('.module-checkbox');
+    const permissions = document.querySelectorAll('.permission-checkbox');
 
-document.addEventListener('DOMContentLoaded', function () {
+    function updateModule(module) {
+        const items = document.querySelectorAll('.permission-' + module);
+        const checked = document.querySelectorAll('.permission-' + module + ':checked');
+        const checkbox = document.querySelector('.module-checkbox[data-module="' + module + '"]');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Select All
-    |--------------------------------------------------------------------------
-    */
-
-    const selectAllButton =
-        document.getElementById('selectAll');
-
-    const deselectAllButton =
-        document.getElementById('deselectAll');
-
-
-    if (selectAllButton) {
-
-        selectAllButton.addEventListener('click', function () {
-
-            document
-                .querySelectorAll('.permission-checkbox')
-                .forEach(function (checkbox) {
-
-                    checkbox.checked = true;
-
-                });
-
-
-            document
-                .querySelectorAll('.module-checkbox')
-                .forEach(function (checkbox) {
-
-                    checkbox.checked = true;
-
-                });
-
-        });
-
+        if (checkbox) {
+            checkbox.checked = items.length > 0 && items.length === checked.length;
+        }
     }
 
+    selectAll?.addEventListener('click', function() {
+        permissions.forEach(item => item.checked = true);
+        modules.forEach(item => item.checked = true);
+    });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Clear All
-    |--------------------------------------------------------------------------
-    */
+    deselectAll?.addEventListener('click', function() {
+        permissions.forEach(item => item.checked = false);
+        modules.forEach(item => item.checked = false);
+    });
 
-    if (deselectAllButton) {
-
-        deselectAllButton.addEventListener('click', function () {
-
-            document
-                .querySelectorAll('.permission-checkbox')
-                .forEach(function (checkbox) {
-
-                    checkbox.checked = false;
-
-                });
-
-
-            document
-                .querySelectorAll('.module-checkbox')
-                .forEach(function (checkbox) {
-
-                    checkbox.checked = false;
-
-                });
-
+    modules.forEach(module => {
+        module.addEventListener('change', function() {
+            document.querySelectorAll('.permission-' + this.dataset.module)
+                .forEach(item => item.checked = this.checked);
         });
 
+        updateModule(module.dataset.module);
+    });
+
+    permissions.forEach(permission => {
+        permission.addEventListener('change', function() {
+            const module = [...this.classList]
+                .find(item => item.startsWith('permission-') && item !== 'permission-checkbox')
+                ?.replace('permission-', '');
+
+            if (module) {
+                updateModule(module);
+            }
+        });
+    });
+
+    if (typeof feather !== 'undefined') {
+        feather.replace();
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Select Module
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll('.module-checkbox')
-        .forEach(function (moduleCheckbox) {
-
-            moduleCheckbox.addEventListener(
-                'change',
-                function () {
-
-                    const module =
-                        this.dataset.module;
-
-                    document
-                        .querySelectorAll(
-                            '.permission-' + module
-                        )
-                        .forEach(function (checkbox) {
-
-                            checkbox.checked =
-                                moduleCheckbox.checked;
-
-                        });
-
-                }
-            );
-
-        });
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Automatically Update Module Checkbox
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll('.permission-checkbox')
-        .forEach(function (permissionCheckbox) {
-
-            permissionCheckbox.addEventListener(
-                'change',
-                function () {
-
-                    const classes =
-                        this.className.split(' ');
-
-                    let moduleClass = null;
-
-                    classes.forEach(function (className) {
-
-                        if (
-                            className.startsWith('permission-') &&
-                            className !== 'permission-checkbox'
-                        ) {
-
-                            moduleClass = className;
-
-                        }
-
-                    });
-
-
-                    if (!moduleClass) {
-                        return;
-                    }
-
-
-                    const moduleCheckbox =
-                        document.querySelector(
-                            '.module-checkbox[data-module="' +
-                            moduleClass.replace('permission-', '') +
-                            '"]'
-                        );
-
-
-                    if (!moduleCheckbox) {
-                        return;
-                    }
-
-
-                    const modulePermissions =
-                        document.querySelectorAll(
-                            '.' + moduleClass
-                        );
-
-
-                    const checkedPermissions =
-                        document.querySelectorAll(
-                            '.' + moduleClass + ':checked'
-                        );
-
-
-                    moduleCheckbox.checked =
-                        modulePermissions.length ===
-                        checkedPermissions.length;
-
-                }
-            );
-
-        });
-
 });
-
 </script>
-
-@endpush

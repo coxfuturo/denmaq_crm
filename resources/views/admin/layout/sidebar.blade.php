@@ -1,506 +1,467 @@
+```blade
 <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
-{{-- SIDEBAR HEADER --}}
-<div class="sidebar-header">
-    <a
-        class="brand-mark"
-        href="{{ route('admin.dashboard') }}"
-        aria-label="CRM Dashboard"
-    >
-        <span class="brand-icon">
-            <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
-        </span>
 
-        <span class="brand-copy">
-            <span class="brand-title">DANMAQ CRM</span>
-            <span class="brand-subtitle">Admin Panel</span>
-        </span>
-    </a>
-</div>
+    <div class="sidebar-header">
+        <a class="brand-mark" href="{{ route('admin.dashboard') }}" aria-label="CRM Dashboard">
+            <span class="brand-icon">
+                <i class="bi bi-grid-1x2-fill"></i>
+            </span>
+
+            <span class="brand-copy">
+                <span class="brand-title">DANMAQ CRM</span>
+                <span class="brand-subtitle">Admin Panel</span>
+            </span>
+        </a>
+    </div>
 
 
-{{-- SIDEBAR NAVIGATION --}}
-<nav class="sidebar-nav">
+    <nav class="sidebar-nav">
 
-    {{-- DASHBOARD --}}
-    <a
-        class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-        href="{{ route('admin.dashboard') }}"
-    >
+        {{-- ================= DASHBOARD ================= --}}
+        <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+           href="{{ route('admin.dashboard') }}">
+
+            <span class="nav-icon">
+                <i class="bi bi-speedometer2"></i>
+            </span>
+
+            <span class="nav-text">Dashboard</span>
+        </a>
+
+
+       {{-- ================= CRM ================= --}}
+@php
+    $crmOpen =
+        request()->routeIs('admin.leads.*') ||
+        request()->routeIs('admin.clients.*') ||
+        request()->routeIs('admin.followups.*') ||
+        request()->routeIs('admin.projects.*');
+@endphp
+
+<div class="nav-dropdown">
+
+    {{-- CRM Parent --}}
+    <a href="#sidebarCRM"
+       class="nav-link nav-dropdown-toggle {{ $crmOpen ? '' : 'collapsed' }}"
+       data-bs-toggle="collapse"
+       role="button"
+       aria-expanded="{{ $crmOpen ? 'true' : 'false' }}"
+       aria-controls="sidebarCRM">
+
         <span class="nav-icon">
-            <i class="bi bi-speedometer2" aria-hidden="true"></i>
+            <i class="bi bi-briefcase-fill"></i>
         </span>
 
         <span class="nav-text">
-            Dashboard
+            CRM
         </span>
+
+        <i class="bi bi-chevron-down dropdown-arrow"></i>
+
     </a>
 
 
-    {{-- ================= USER MANAGEMENT ================= --}}
-    <div class="nav-section">
-        <span class="nav-section-title">
-            User Management
-        </span>
+    {{-- CRM Children --}}
+    <div class="collapse {{ $crmOpen ? 'show' : '' }}"
+         id="sidebarCRM"
+         data-bs-parent=".sidebar-nav">
+
+        <div class="nav-dropdown-menu">
+
+            {{-- ================= LEADS ================= --}}
+            @if(Route::has('admin.leads.index'))
+                <a href="{{ route('admin.leads.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
+
+                    <span class="nav-icon">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </span>
+
+                    <span class="nav-text">
+                        Leads
+                    </span>
+
+                </a>
+            @endif
+
+
+            {{-- ================= CLIENTS ================= --}}
+            @if(Route::has('admin.clients.index'))
+                <a href="{{ route('admin.clients.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+
+                    <span class="nav-icon">
+                        <i class="bi bi-person-vcard"></i>
+                    </span>
+
+                    <span class="nav-text">
+                        Clients
+                    </span>
+
+                </a>
+            @endif
+
+
+            {{-- ================= FOLLOW UPS ================= --}}
+            @if(Route::has('admin.followups.index'))
+                <a href="{{ route('admin.followups.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.followups.*') ? 'active' : '' }}">
+
+                    <span class="nav-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </span>
+
+                    <span class="nav-text">
+                        Follow Ups
+                    </span>
+
+                </a>
+            @endif
+
+
+            {{-- ================= PROJECTS ================= --}}
+            @if(Route::has('admin.projects.index'))
+                <a href="{{ route('admin.projects.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+
+                    <span class="nav-icon">
+                        <i class="bi bi-kanban"></i>
+                    </span>
+
+                    <span class="nav-text">
+                        Projects
+                    </span>
+
+                </a>
+            @endif
+
+        </div>
+
     </div>
 
+</div>
 
-    {{-- USERS --}}
-    @if(Route::has('admin.users.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
-            href="{{ route('admin.users.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-people" aria-hidden="true"></i>
-            </span>
+        {{-- ================= USER MANAGEMENT ================= --}}
+        @php
+            $userManagementOpen =
+                request()->routeIs('admin.users.*') ||
+                request()->routeIs('admin.roles.*') ||
+                request()->routeIs('admin.permissions.*');
+        @endphp
 
-            <span class="nav-text">
-                Users
-            </span>
-        </a>
-    @endif
+        <div class="nav-dropdown">
 
+            <a href="#sidebarUserManagement"
+               class="nav-link nav-dropdown-toggle {{ $userManagementOpen ? '' : 'collapsed' }}"
+               data-bs-toggle="collapse"
+               role="button"
+               aria-expanded="{{ $userManagementOpen ? 'true' : 'false' }}"
+               aria-controls="sidebarUserManagement">
 
-    {{-- ROLES --}}
-    @if(Route::has('admin.roles.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}"
-            href="{{ route('admin.roles.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-person-gear" aria-hidden="true"></i>
-            </span>
+                <span class="nav-icon">
+                    <i class="bi bi-people-fill"></i>
+                </span>
 
-            <span class="nav-text">
-                Roles
-            </span>
-        </a>
-    @endif
+                <span class="nav-text">User Management</span>
+
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </a>
 
 
-    {{-- PERMISSIONS --}}
-    @if(Route::has('admin.permissions.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}"
-            href="{{ route('admin.permissions.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-shield-check" aria-hidden="true"></i>
-            </span>
+            <div class="collapse {{ $userManagementOpen ? 'show' : '' }}"
+                 id="sidebarUserManagement"
+                 data-bs-parent=".sidebar-nav">
 
-            <span class="nav-text">
-                Permissions
-            </span>
-        </a>
-    @endif
+                <div class="nav-dropdown-menu">
 
+                    @if(Route::has('admin.users.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+                           href="{{ route('admin.users.index') }}">
 
+                            <span class="nav-icon">
+                                <i class="bi bi-people"></i>
+                            </span>
 
-    {{-- ================= CRM ================= --}}
-    <div class="nav-section">
-        <span class="nav-section-title">
-            CRM
-        </span>
-    </div>
+                            <span class="nav-text">Users</span>
+                        </a>
+                    @endif
 
 
-    {{-- LEADS --}}
-    @if(Route::has('admin.leads.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}"
-            href="{{ route('admin.leads.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
-            </span>
+                    @if(Route::has('admin.roles.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}"
+                           href="{{ route('admin.roles.index') }}">
 
-            <span class="nav-text">
-                Leads
-            </span>
-        </a>
-    @endif
+                            <span class="nav-icon">
+                                <i class="bi bi-person-gear"></i>
+                            </span>
+
+                            <span class="nav-text">Roles</span>
+                        </a>
+                    @endif
 
 
-    {{-- CLIENTS --}}
-    @if(Route::has('admin.clients.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}"
-            href="{{ route('admin.clients.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-person-vcard" aria-hidden="true"></i>
-            </span>
+                    @if(Route::has('admin.permissions.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}"
+                           href="{{ route('admin.permissions.index') }}">
 
-            <span class="nav-text">
-                Clients
-            </span>
-        </a>
-    @endif
+                            <span class="nav-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </span>
 
+                            <span class="nav-text">Permissions</span>
+                        </a>
+                    @endif
 
-    {{-- PROJECTS --}}
-    @if(Route::has('admin.projects.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}"
-            href="{{ route('admin.projects.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-kanban" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Projects
-            </span>
-        </a>
-    @endif
-
-
-
-    {{-- ================= SALES & FINANCE ================= --}}
-    <div class="nav-section">
-        <span class="nav-section-title">
-            Sales & Finance
-        </span>
-    </div>
-
-
-    {{-- QUOTATIONS --}}
-    @if(Route::has('admin.quotations.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}"
-            href="{{ route('admin.quotations.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Quotations
-            </span>
-        </a>
-    @endif
-
-
-    {{-- INVOICES --}}
-    @if(Route::has('admin.invoices.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}"
-            href="{{ route('admin.invoices.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-receipt" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Invoices
-            </span>
-        </a>
-    @endif
-
-
-    {{-- PAYMENTS --}}
-    @if(Route::has('admin.payments.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
-            href="{{ route('admin.payments.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-credit-card" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Payments
-            </span>
-        </a>
-    @endif
-
-
-
-    {{-- ================= REPORTS ================= --}}
-    <div class="nav-section">
-        <span class="nav-section-title">
-            Reports
-        </span>
-    </div>
-
-
-    {{-- REPORTS --}}
-    @if(Route::has('admin.reports.index'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"
-            href="{{ route('admin.reports.index') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Reports
-            </span>
-        </a>
-    @endif
-
-
-
-    {{-- ================= SETTINGS ================= --}}
-    <div class="nav-section">
-        <span class="nav-section-title">
-            System
-        </span>
-    </div>
-
-
-    {{-- PROFILE --}}
-    @if(Route::has('admin.profile'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}"
-            href="{{ route('admin.profile') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-person-badge" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Profile
-            </span>
-        </a>
-    @endif
-
-
-    {{-- SETTINGS --}}
-    @if(Route::has('admin.settings'))
-        <a
-            class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-            href="{{ route('admin.settings') }}"
-        >
-            <span class="nav-icon">
-                <i class="bi bi-gear" aria-hidden="true"></i>
-            </span>
-
-            <span class="nav-text">
-                Settings
-            </span>
-        </a>
-    @endif
-
-
-
-    {{-- ================= DYNAMIC ROLE PERMISSIONS ================= --}}
-    @php
-        $userRoles = getUserRoles();
-    @endphp
-
-    @if($userRoles->count() > 0)
-
-        <div class="nav-section">
-            <span class="nav-section-title">
-                Assigned Permissions
-            </span>
+                </div>
+            </div>
         </div>
 
 
-        @foreach($userRoles as $role)
+        {{-- ================= SALES ================= --}}
+        @php
+            $salesOpen =
+                request()->routeIs('admin.quotations.*') ||
+                request()->routeIs('admin.invoices.*') ||
+                request()->routeIs('admin.payments.*');
+        @endphp
 
-            @php
-                $permissions = getAssignedPermissions($role->id);
-            @endphp
+        <div class="nav-dropdown">
 
+            <a href="#sidebarSales"
+               class="nav-link nav-dropdown-toggle {{ $salesOpen ? '' : 'collapsed' }}"
+               data-bs-toggle="collapse"
+               role="button"
+               aria-expanded="{{ $salesOpen ? 'true' : 'false' }}"
+               aria-controls="sidebarSales">
 
-            @if($permissions->count() > 0)
+                <span class="nav-icon">
+                    <i class="bi bi-cart-check-fill"></i>
+                </span>
 
-                {{-- ROLE --}}
-                <div class="nav-section">
-                    <span class="nav-section-title">
+                <span class="nav-text">Sales</span>
 
-                        @php
-                            $roleIcon = 'shield';
-
-                            switch ($role->icon) {
-                                case 'shield':
-                                    $roleIcon = 'shield';
-                                    break;
-
-                                case 'user-check':
-                                    $roleIcon = 'person-check';
-                                    break;
-
-                                case 'users':
-                                    $roleIcon = 'people';
-                                    break;
-
-                                case 'briefcase':
-                                    $roleIcon = 'briefcase';
-                                    break;
-
-                                case 'user':
-                                    $roleIcon = 'person';
-                                    break;
-
-                                case 'dollar-sign':
-                                    $roleIcon = 'currency-dollar';
-                                    break;
-
-                                case 'headphones':
-                                    $roleIcon = 'headphones';
-                                    break;
-
-                                case 'eye':
-                                    $roleIcon = 'eye';
-                                    break;
-
-                                default:
-                                    $roleIcon = 'shield';
-                                    break;
-                            }
-                        @endphp
-
-                        <i
-                            class="bi bi-{{ $roleIcon }}"
-                            aria-hidden="true"
-                        ></i>
-
-                        {{ $role->name }}
-
-                    </span>
-                </div>
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </a>
 
 
-                {{-- ROLE PERMISSIONS --}}
-                @foreach($permissions as $permission)
+            <div class="collapse {{ $salesOpen ? 'show' : '' }}"
+                 id="sidebarSales"
+                 data-bs-parent=".sidebar-nav">
 
-                    @if(
-                        !empty($permission->route) &&
-                        Route::has($permission->route)
-                    )
+                <div class="nav-dropdown-menu">
 
-                        @php
-
-                            $permissionIcon = 'circle';
-
-                            switch ($permission->name) {
-
-                                case 'Users':
-                                    $permissionIcon = 'people';
-                                    break;
-
-                                case 'Roles':
-                                    $permissionIcon = 'person-gear';
-                                    break;
-
-                                case 'Permissions':
-                                    $permissionIcon = 'shield-check';
-                                    break;
-
-                                case 'Leads':
-                                    $permissionIcon = 'person-lines-fill';
-                                    break;
-
-                                case 'Clients':
-                                    $permissionIcon = 'person-vcard';
-                                    break;
-
-                                case 'Projects':
-                                    $permissionIcon = 'kanban';
-                                    break;
-
-                                case 'Quotations':
-                                    $permissionIcon = 'file-earmark-text';
-                                    break;
-
-                                case 'Invoices':
-                                    $permissionIcon = 'receipt';
-                                    break;
-
-                                case 'Payments':
-                                    $permissionIcon = 'credit-card';
-                                    break;
-
-                                case 'Reports':
-                                    $permissionIcon = 'bar-chart-line';
-                                    break;
-
-                                case 'Profile':
-                                    $permissionIcon = 'person-badge';
-                                    break;
-
-                                case 'Settings':
-                                    $permissionIcon = 'gear';
-                                    break;
-
-                                default:
-                                    $permissionIcon = 'circle';
-                                    break;
-                            }
-
-                        @endphp
-
-                        <a
-                            class="nav-link {{ request()->routeIs($permission->route) || request()->routeIs(str_replace('.index', '.*', $permission->route)) ? 'active' : '' }}"
-                            href="{{ route($permission->route) }}"
-                        >
+                    @if(Route::has('admin.quotations.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}"
+                           href="{{ route('admin.quotations.index') }}">
 
                             <span class="nav-icon">
-
-                                <i
-                                    class="bi bi-{{ $permissionIcon }}"
-                                    aria-hidden="true"
-                                ></i>
-
+                                <i class="bi bi-file-earmark-text"></i>
                             </span>
 
-                            <span class="nav-text">
-                                {{ $permission->name }}
-                            </span>
-
+                            <span class="nav-text">Quotations</span>
                         </a>
-
                     @endif
 
-                @endforeach
 
-            @endif
+                    @if(Route::has('admin.invoices.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}"
+                           href="{{ route('admin.invoices.index') }}">
 
-        @endforeach
+                            <span class="nav-icon">
+                                <i class="bi bi-receipt"></i>
+                            </span>
 
-    @endif
+                            <span class="nav-text">Invoices</span>
+                        </a>
+                    @endif
 
-    <form
-        action="{{ route('logout') }}"
-        method="POST"
-        class="logout-form"
-    >
 
-        @csrf
+                    @if(Route::has('admin.payments.index'))
+                        <a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
+                           href="{{ route('admin.payments.index') }}">
 
-        <button
-            type="submit"
-            class="nav-link logout-link"
-        >
+                            <span class="nav-icon">
+                                <i class="bi bi-credit-card"></i>
+                            </span>
 
-            <span class="nav-icon">
-                <i
-                    class="bi bi-box-arrow-right"
-                    aria-hidden="true"
-                ></i>
-            </span>
+                            <span class="nav-text">Payments</span>
+                        </a>
+                    @endif
 
-            <span class="nav-text">
-                Logout
-            </span>
+                </div>
+            </div>
+        </div>
 
-        </button>
 
-    </form>
+        {{-- ================= REPORTS ================= --}}
+        @php
+            $reportsOpen =
+                request()->routeIs('admin.reports.leads') ||
+                request()->routeIs('admin.reports.sales') ||
+                request()->routeIs('admin.reports.users');
+        @endphp
 
-</nav>
+        <div class="nav-dropdown">
 
-<div class="sidebar-footer">
+            <a href="#sidebarReports"
+               class="nav-link nav-dropdown-toggle {{ $reportsOpen ? '' : 'collapsed' }}"
+               data-bs-toggle="collapse"
+               role="button"
+               aria-expanded="{{ $reportsOpen ? 'true' : 'false' }}"
+               aria-controls="sidebarReports">
 
-    <span class="status-dot"></span>
+                <span class="nav-icon">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </span>
 
-    <span class="sidebar-footer-text">
-        System running smoothly
-    </span>
+                <span class="nav-text">Reports</span>
 
-</div>
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </a>
+
+
+            <div class="collapse {{ $reportsOpen ? 'show' : '' }}"
+                 id="sidebarReports"
+                 data-bs-parent=".sidebar-nav">
+
+                <div class="nav-dropdown-menu">
+
+                    @if(Route::has('admin.reports.leads'))
+                        <a class="nav-link {{ request()->routeIs('admin.reports.leads') ? 'active' : '' }}"
+                           href="{{ route('admin.reports.leads') }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-person-lines-fill"></i>
+                            </span>
+
+                            <span class="nav-text">Lead Report</span>
+                        </a>
+                    @endif
+
+
+                    @if(Route::has('admin.reports.sales'))
+                        <a class="nav-link {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}"
+                           href="{{ route('admin.reports.sales') }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </span>
+
+                            <span class="nav-text">Sales Report</span>
+                        </a>
+                    @endif
+
+
+                    @if(Route::has('admin.reports.users'))
+                        <a class="nav-link {{ request()->routeIs('admin.reports.users') ? 'active' : '' }}"
+                           href="{{ route('admin.reports.users') }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-people"></i>
+                            </span>
+
+                            <span class="nav-text">User Report</span>
+                        </a>
+                    @endif
+
+                </div>
+            </div>
+        </div>
+
+
+        {{-- ================= SETTINGS ================= --}}
+        @php
+            $settingsOpen =
+                request()->routeIs('admin.settings') ||
+                request()->routeIs('admin.profile');
+        @endphp
+
+        <div class="nav-dropdown">
+
+            <a href="#sidebarSettings"
+               class="nav-link nav-dropdown-toggle {{ $settingsOpen ? '' : 'collapsed' }}"
+               data-bs-toggle="collapse"
+               role="button"
+               aria-expanded="{{ $settingsOpen ? 'true' : 'false' }}"
+               aria-controls="sidebarSettings">
+
+                <span class="nav-icon">
+                    <i class="bi bi-gear-fill"></i>
+                </span>
+
+                <span class="nav-text">Settings</span>
+
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
+            </a>
+
+
+            <div class="collapse {{ $settingsOpen ? 'show' : '' }}"
+                 id="sidebarSettings"
+                 data-bs-parent=".sidebar-nav">
+
+                <div class="nav-dropdown-menu">
+
+                    @if(Route::has('admin.settings'))
+                        <a class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
+                           href="{{ route('admin.settings') }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-building"></i>
+                            </span>
+
+                            <span class="nav-text">Company Settings</span>
+                        </a>
+                    @endif
+
+
+                    @if(Route::has('admin.profile'))
+                        <a class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}"
+                           href="{{ route('admin.profile') }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-person-badge"></i>
+                            </span>
+
+                            <span class="nav-text">Profile</span>
+                        </a>
+                    @endif
+
+                </div>
+            </div>
+        </div>
+
+
+        {{-- ================= DIVIDER ================= --}}
+        <div class="nav-divider"></div>
+
+
+        {{-- ================= LOGOUT ================= --}}
+        <form action="{{ route('logout') }}"
+              method="POST"
+              class="logout-form">
+
+            @csrf
+
+            <button type="submit" class="nav-link logout-link">
+
+                <span class="nav-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </span>
+
+                <span class="nav-text">Logout</span>
+
+            </button>
+        </form>
+
+    </nav>
+
+
+    <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span class="sidebar-footer-text">
+            System running smoothly
+        </span>
+    </div>
+
 </aside>
+```

@@ -1616,3 +1616,146 @@ html[data-theme="dark"] {
   border-top-color: var(--admin-sidebar-border);
   color: var(--admin-sidebar-text);
 }
+
+
+/* =========================================================
+   SIDEBAR DROPDOWN FIX
+   ========================================================= */
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+/* Dropdown parent */
+.nav-dropdown {
+    width: 100%;
+}
+
+/* Parent dropdown button */
+.sidebar-nav .nav-dropdown > .nav-dropdown-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+/* Arrow */
+.nav-dropdown-toggle .dropdown-arrow {
+    margin-left: auto;
+    transition: transform 0.25s ease;
+}
+
+/* Rotate arrow when open */
+.nav-dropdown-toggle:not(.collapsed) .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown area */
+.nav-dropdown .collapse {
+    width: 100%;
+}
+
+/* Children container */
+.nav-dropdown-menu {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px 0 5px 0;
+}
+
+/* Child links */
+.nav-dropdown-menu .nav-link {
+    width: 100%;
+    min-height: 42px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 12px 10px 45px;
+
+    border-radius: 7px;
+
+    color: var(--admin-sidebar-text);
+    background: transparent;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    transition: all 0.2s ease;
+}
+
+/* Child icon */
+.nav-dropdown-menu .nav-link .nav-icon {
+    width: 26px;
+    height: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 26px;
+
+    border-radius: 6px;
+
+    background: var(--admin-sidebar-icon-bg);
+    color: var(--admin-sidebar-icon);
+
+    font-size: 13px;
+}
+
+/* Hover */
+.nav-dropdown-menu .nav-link:hover {
+    background: var(--admin-sidebar-soft);
+    color: var(--admin-sidebar-text-strong);
+    padding-left: 48px;
+}
+
+/* Active */
+.nav-dropdown-menu .nav-link.active {
+    background: var(--admin-sidebar-soft);
+    color: var(--admin-primary);
+    font-weight: 700;
+}
+
+/* Active icon */
+.nav-dropdown-menu .nav-link.active .nav-icon {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--admin-primary);
+}
+
+
+/* =========================================================
+   BOOTSTRAP COLLAPSE
+   ========================================================= */
+
+.nav-dropdown > .collapse {
+    overflow: hidden;
+}
+
+.nav-dropdown > .collapsing {
+    overflow: hidden;
+    transition: height 0.25s ease;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+
+    .nav-dropdown-menu .nav-link {
+        padding-left: 35px;
+    }
+
+    .nav-dropdown-menu .nav-link:hover {
+        padding-left: 38px;
+    }
+}

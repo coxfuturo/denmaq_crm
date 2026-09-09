@@ -7,25 +7,9 @@ use App\Models\Permission;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Permissions
-        |--------------------------------------------------------------------------
-        */
-
         $permissions = [
-
-            /*
-            |--------------------------------------------------------------------------
-            | Dashboard
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Dashboard',
                 'name' => 'Dashboard View',
@@ -34,14 +18,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Leads
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Leads',
                 'name' => 'Leads View',
@@ -50,7 +26,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Leads',
                 'name' => 'Leads Create',
@@ -59,7 +34,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Leads',
                 'name' => 'Leads Edit',
@@ -68,7 +42,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Leads',
                 'name' => 'Leads Delete',
@@ -77,14 +50,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Customers
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Customers',
                 'name' => 'Customers View',
@@ -93,7 +58,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Customers',
                 'name' => 'Customers Create',
@@ -102,7 +66,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Customers',
                 'name' => 'Customers Edit',
@@ -111,7 +74,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Customers',
                 'name' => 'Customers Delete',
@@ -120,14 +82,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Contacts
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Contacts',
                 'name' => 'Contacts View',
@@ -136,7 +90,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Contacts',
                 'name' => 'Contacts Create',
@@ -145,7 +98,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Contacts',
                 'name' => 'Contacts Edit',
@@ -154,7 +106,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Contacts',
                 'name' => 'Contacts Delete',
@@ -163,14 +114,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Follow Ups
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Follow Ups',
                 'name' => 'Follow Ups View',
@@ -179,7 +122,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Follow Ups',
                 'name' => 'Follow Ups Create',
@@ -188,7 +130,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Follow Ups',
                 'name' => 'Follow Ups Edit',
@@ -197,7 +138,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Follow Ups',
                 'name' => 'Follow Ups Delete',
@@ -206,14 +146,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Tasks
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Tasks',
                 'name' => 'Tasks View',
@@ -222,7 +154,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Tasks',
                 'name' => 'Tasks Create',
@@ -231,7 +162,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Tasks',
                 'name' => 'Tasks Edit',
@@ -240,7 +170,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Tasks',
                 'name' => 'Tasks Delete',
@@ -249,14 +178,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Quotations
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Quotations',
                 'name' => 'Quotations View',
@@ -265,7 +186,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Quotations',
                 'name' => 'Quotations Create',
@@ -274,7 +194,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Quotations',
                 'name' => 'Quotations Edit',
@@ -283,7 +202,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Quotations',
                 'name' => 'Quotations Delete',
@@ -292,14 +210,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Sales Orders
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Sales Orders',
                 'name' => 'Sales Orders View',
@@ -308,7 +218,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Sales Orders',
                 'name' => 'Sales Orders Create',
@@ -317,7 +226,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Sales Orders',
                 'name' => 'Sales Orders Edit',
@@ -326,7 +234,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Sales Orders',
                 'name' => 'Sales Orders Delete',
@@ -335,14 +242,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Invoices
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Invoices',
                 'name' => 'Invoices View',
@@ -351,7 +250,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Invoices',
                 'name' => 'Invoices Create',
@@ -360,7 +258,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Invoices',
                 'name' => 'Invoices Edit',
@@ -369,7 +266,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Invoices',
                 'name' => 'Invoices Delete',
@@ -378,14 +274,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Payments
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Payments',
                 'name' => 'Payments View',
@@ -394,7 +282,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Payments',
                 'name' => 'Payments Create',
@@ -403,7 +290,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Payments',
                 'name' => 'Payments Edit',
@@ -412,7 +298,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Payments',
                 'name' => 'Payments Delete',
@@ -421,14 +306,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Products
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Products',
                 'name' => 'Products View',
@@ -437,7 +314,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Products',
                 'name' => 'Products Create',
@@ -446,7 +322,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Products',
                 'name' => 'Products Edit',
@@ -455,7 +330,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Products',
                 'name' => 'Products Delete',
@@ -464,14 +338,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Categories
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Categories',
                 'name' => 'Categories View',
@@ -480,7 +346,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Categories',
                 'name' => 'Categories Create',
@@ -489,7 +354,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Categories',
                 'name' => 'Categories Edit',
@@ -498,7 +362,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Categories',
                 'name' => 'Categories Delete',
@@ -507,14 +370,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Brands
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Brands',
                 'name' => 'Brands View',
@@ -523,7 +378,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Brands',
                 'name' => 'Brands Create',
@@ -532,7 +386,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Brands',
                 'name' => 'Brands Edit',
@@ -541,7 +394,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Brands',
                 'name' => 'Brands Delete',
@@ -550,14 +402,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Stock
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Stock',
                 'name' => 'Stock View',
@@ -566,7 +410,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Stock',
                 'name' => 'Stock Create',
@@ -575,7 +418,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Stock',
                 'name' => 'Stock Edit',
@@ -584,7 +426,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Stock',
                 'name' => 'Stock Delete',
@@ -593,14 +434,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Expenses
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Expenses',
                 'name' => 'Expenses View',
@@ -609,7 +442,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Expenses',
                 'name' => 'Expenses Create',
@@ -618,7 +450,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Expenses',
                 'name' => 'Expenses Edit',
@@ -627,7 +458,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Expenses',
                 'name' => 'Expenses Delete',
@@ -636,14 +466,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Users
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Users',
                 'name' => 'Users View',
@@ -652,7 +474,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Users',
                 'name' => 'Users Create',
@@ -661,7 +482,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Users',
                 'name' => 'Users Edit',
@@ -670,7 +490,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Users',
                 'name' => 'Users Delete',
@@ -679,14 +498,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Roles
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Roles',
                 'name' => 'Roles View',
@@ -695,7 +506,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Roles',
                 'name' => 'Roles Create',
@@ -704,7 +514,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
             [
                 'module' => 'Roles',
                 'name' => 'Roles Edit',
@@ -713,7 +522,6 @@ class PermissionSeeder extends Seeder
                 'position' => 3,
                 'status' => true,
             ],
-
             [
                 'module' => 'Roles',
                 'name' => 'Roles Delete',
@@ -722,14 +530,6 @@ class PermissionSeeder extends Seeder
                 'position' => 4,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Reports
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Reports',
                 'name' => 'Reports View',
@@ -738,7 +538,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Reports',
                 'name' => 'Reports Export',
@@ -747,14 +546,6 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Activity Logs
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Activity Logs',
                 'name' => 'Activity Logs View',
@@ -763,14 +554,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Settings
-            |--------------------------------------------------------------------------
-            */
-
             [
                 'module' => 'Settings',
                 'name' => 'Settings View',
@@ -779,7 +562,6 @@ class PermissionSeeder extends Seeder
                 'position' => 1,
                 'status' => true,
             ],
-
             [
                 'module' => 'Settings',
                 'name' => 'Settings Edit',
@@ -788,18 +570,9 @@ class PermissionSeeder extends Seeder
                 'position' => 2,
                 'status' => true,
             ],
-
         ];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Insert / Update Permissions
-        |--------------------------------------------------------------------------
-        */
-
         foreach ($permissions as $permission) {
-
             Permission::updateOrCreate(
                 [
                     'name' => $permission['name'],
@@ -813,15 +586,7 @@ class PermissionSeeder extends Seeder
                     'status' => $permission['status'],
                 ]
             );
-
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Clear Permission Cache
-        |--------------------------------------------------------------------------
-        */
 
         app()[\Spatie\Permission\PermissionRegistrar::class]
             ->forgetCachedPermissions();
