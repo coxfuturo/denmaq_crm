@@ -1,0 +1,46 @@
+.role-page .page-header{margin-bottom:24px}
+.role-page .page-title{margin:0 0 4px;font-size:24px;font-weight:600;color:#1d2939}
+.role-page .page-description{margin:0;color:#667085;font-size:14px}
+.role-page .card{border:0;border-radius:12px;box-shadow:0 2px 10px rgba(16,24,40,.06);overflow:hidden}
+.role-page .card-header{padding:18px 20px;background:#fff;border-bottom:1px solid #eaecf0}
+.role-page .card-header h5{margin:0;font-size:16px;font-weight:600;color:#1d2939}
+.role-page .card-header small{display:block;margin-top:4px;color:#667085;font-size:13px}
+.role-page .card-body{padding:20px}
+.role-page .form-label{margin-bottom:7px;font-size:14px;font-weight:600;color:#344054}
+.role-page .form-control{min-height:42px;border:1px solid #d0d5dd;border-radius:8px;box-shadow:none;font-size:14px}
+.role-page .form-control:focus{border-color:#6c63ff;box-shadow:0 0 0 3px rgba(108,99,255,.1)}
+.role-page .form-text{margin-top:6px;color:#667085;font-size:12px}
+.role-page .permission-module{padding:16px;margin-bottom:16px;border:1px solid #e4e7ec;border-radius:10px;background:#fff}
+.role-page .permission-module:last-child
+.role-page .module-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:13px;margin-bottom:14px;border-bottom:1px solid #eaecf0}
+.role-page .module-title{display:flex;align-items:center;gap:7px;margin:0;color:#475467;font-size:15px;font-weight:600}
+.role-page .module-title svg{width:17px;height:17px;color:#6c63ff}
+.role-page .module-select{display:flex;align-items:center;gap:7px}
+.role-page .module-select input{margin:0}
+.role-page .module-select label{margin:0;color:#667085;font-size:13px;cursor:pointer}
+.role-page .permission-item{height:100%;padding:10px 12px;border:1px solid #eaecf0;border-radius:8px;background:#f9fafb}
+.role-page .form-check-input{width:17px;height:17px;margin-top:2px;cursor:pointer}
+.role-page .form-check-input:checked
+.role-page .form-check-label{color:#475467;font-size:13px;cursor:pointer}
+.role-page .btn{min-height:40px;border-radius:8px;font-size:14px;font-weight:500}
+.role-page .btn-sm{min-height:36px;padding:7px 12px}
+.role-page .btn-primary{background:#6c63ff;border-color:#6c63ff}
+.role-page .btn-primary:hover
+.role-page .btn-light{background:#fff;border:1px solid #d0d5dd;color:#344054}
+.role-page .empty-permission{padding:50px 20px;text-align:center}
+.role-page .empty-permission svg{width:45px;height:45px;margin-bottom:15px;color:#98a2b3}
+.role-page .empty-permission h5{margin-bottom:5px;color:#667085}
+.role-page .empty-permission p{margin:0;color:#98a2b3;font-size:14px}
+.role-page .form-footer{display:flex;justify-content:flex-end;gap:8px;margin-bottom:24px}
+.role-page .status-switch{display:flex;align-items:center;gap:10px}
+.role-page .status-switch .form-check-input{width:42px;height:22px;margin:0;cursor:pointer}
+.role-page .status-switch .form-check-label{font-size:13px;font-weight:500;color:#475467;cursor:pointer}
+.role-page .status-switch .form-check-input:checked
+@media(max-width:767px){
+.role-page .page-header,.role-page .permissions-header,.role-page .module-header{align-items:flex-start!important;flex-direction:column;gap:12px}
+.role-page .page-header .btn,.role-page .permission-actions,.role-page .form-footer .btn{width:100%}
+.role-page .card-header,.role-page .card-body{padding:15px}
+.role-page .permission-actions{display:flex}
+.role-page .permission-actions .btn{flex:1}
+.role-page .form-footer{flex-direction:column}
+}
