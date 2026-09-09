@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Lead extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'company_name',
@@ -28,12 +30,12 @@ class Lead extends Model
         'budget' => 'decimal:2',
     ];
 
-    public function assignedUser(): BelongsTo
+    public function assignedUser()
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
