@@ -15,7 +15,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.view'),
+            auth()->user()->can('Users View'),
             403
         );
 
@@ -97,7 +97,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.create'),
+            auth()->user()->can('Users Create'),
             403
         );
 
@@ -113,7 +113,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.create'),
+            auth()->user()->can('Users Create'),
             403
         );
 
@@ -173,7 +173,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.view'),
+            auth()->user()->can('Users View'),
             403
         );
 
@@ -188,7 +188,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.edit'),
+            auth()->user()->can('Users Edit'),
             403
         );
 
@@ -206,7 +206,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.edit'),
+            auth()->user()->can('Users Edit'),
             403
         );
 
@@ -286,7 +286,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.delete'),
+            auth()->user()->can('Users Delete'),
             403
         );
 
@@ -303,7 +303,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.restore'),
+            auth()->user()->can('Users Delete'),
             403
         );
 
@@ -321,7 +321,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.force-delete'),
+            auth()->user()->can('Users Delete'),
             403
         );
 
@@ -346,7 +346,7 @@ class UserController extends Controller
     {
         abort_unless(
             auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can('users.status'),
+            auth()->user()->can('Users Edit'),
             403
         );
 
@@ -358,5 +358,10 @@ class UserController extends Controller
         return redirect()
             ->back()
             ->with('success', 'User status updated successfully.');
+    }
+
+    public function changeStatus(string $id)
+    {
+        return $this->status($id);
     }
 }

@@ -10,8 +10,25 @@ use Spatie\Permission\PermissionRegistrar;
 
 class PermissionController extends Controller
 {
+    private function checkPermission(string $permission): void
+    {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can($permission),
+            403,
+            'You do not have permission to perform this action.'
+        );
+    }
+
+    private function clearPermissionCache(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
     public function index(Request $request)
     {
+        $this->checkPermission('Roles View');
+
         $query = Permission::query();
 
         if ($request->filled('search')) {
@@ -36,16 +53,23 @@ class PermissionController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.permissions.index', compact('permissions'));
+        return view(
+            'admin.permissions.index',
+            compact('permissions')
+        );
     }
 
     public function create()
     {
+        $this->checkPermission('Roles Create');
+
         return view('admin.permissions.create');
     }
 
     public function store(Request $request)
     {
+        $this->checkPermission('Roles Create');
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -81,7 +105,7 @@ class PermissionController extends Controller
 
         Permission::create($validated);
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->clearPermissionCache();
 
         return redirect()
             ->route('admin.permissions.index')
@@ -90,13 +114,20 @@ class PermissionController extends Controller
 
     public function edit(string $id)
     {
+        $this->checkPermission('Roles Edit');
+
         $permission = Permission::findOrFail($id);
 
-        return view('admin.permissions.edit', compact('permission'));
+        return view(
+            'admin.permissions.edit',
+            compact('permission')
+        );
     }
 
     public function update(Request $request, string $id)
     {
+        $this->checkPermission('Roles Edit');
+
         $permission = Permission::findOrFail($id);
 
         $validated = $request->validate([
@@ -104,7 +135,8 @@ class PermissionController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('permissions', 'name')->ignore($permission->id),
+                Rule::unique('permissions', 'name')
+                    ->ignore($permission->id),
             ],
             'module' => [
                 'required',
@@ -134,7 +166,7 @@ class PermissionController extends Controller
 
         $permission->update($validated);
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->clearPermissionCache();
 
         return redirect()
             ->route('admin.permissions.index')
@@ -143,17 +175,22 @@ class PermissionController extends Controller
 
     public function destroy(string $id)
     {
+        $this->checkPermission('Roles Delete');
+
         $permission = Permission::findOrFail($id);
 
         if ($permission->roles()->exists()) {
             return redirect()
                 ->back()
-                ->with('error', 'This permission is assigned to a role. Please remove it from the role first.');
+                ->with(
+                    'error',
+                    'This permission is assigned to a role. Please remove it from the role first.'
+                );
         }
 
         $permission->delete();
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->clearPermissionCache();
 
         return redirect()
             ->route('admin.permissions.index')
@@ -162,15 +199,25 @@ class PermissionController extends Controller
 
     public function status(string $id)
     {
+        $this->checkPermission('Roles Edit');
+
         $permission = Permission::findOrFail($id);
 
         $permission->status = !$permission->status;
         $permission->save();
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->clearPermissionCache();
 
         return redirect()
             ->back()
-            ->with('success', 'Permission status updated successfully.');
+            ->with(
+                'success',
+                'Permission status updated successfully.'
+            );
+    }
+
+    public function changeStatus(string $id)
+    {
+        return $this->status($id);
     }
 }
