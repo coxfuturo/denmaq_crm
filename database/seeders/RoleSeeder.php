@@ -1,19 +1,18 @@
 <?php
 
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use App\Models\Role;
-use App\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdmin = Role::updateOrCreate(
+        Role::updateOrCreate(
+            ['name' => 'Super Admin'],
             [
-                'name' => 'Super Admin',
-            ],
-            [
+                'guard_name' => 'web',
                 'name_alias' => 'System Administrator',
                 'icon' => 'shield',
                 'position' => 1,
@@ -21,15 +20,10 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        $superAdmin->permissions()->sync(
-            Permission::pluck('id')->toArray()
-        );
-
-        $admin = Role::updateOrCreate(
+        Role::updateOrCreate(
+            ['name' => 'Admin'],
             [
-                'name' => 'Admin',
-            ],
-            [
+                'guard_name' => 'web',
                 'name_alias' => 'System Admin',
                 'icon' => 'user-check',
                 'position' => 2,
@@ -37,166 +31,54 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        $adminPermissions = Permission::whereNotIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'Sales Manager'],
             [
-                'Roles',
-                'Settings',
-            ]
-        )->pluck('id')->toArray();
-
-        $admin->permissions()->sync(
-            $adminPermissions
-        );
-
-        $manager = Role::updateOrCreate(
-            [
-                'name' => 'Manager',
-            ],
-            [
-                'name_alias' => 'Business Manager',
-                'icon' => 'users',
+                'guard_name' => 'web',
+                'name_alias' => 'Sales Head',
+                'icon' => 'briefcase',
                 'position' => 3,
                 'status' => true,
             ]
         );
 
-        $managerPermissions = Permission::whereIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'Sales Executive'],
             [
-                'Dashboard',
-                'Leads',
-                'Customers',
-                'Contacts',
-                'Follow-ups',
-                'Tasks',
-                'Quotations',
-                'Sales Orders',
-                'Invoices',
-                'Payments',
-                'Products',
-                'Categories',
-                'Brands',
-                'Stock',
-                'Expenses',
-                'Reports',
-            ]
-        )->pluck('id')->toArray();
-
-        $manager->permissions()->sync(
-            $managerPermissions
-        );
-
-        $salesManager = Role::updateOrCreate(
-            [
-                'name' => 'Sales Manager',
-            ],
-            [
-                'name_alias' => 'Sales Head',
-                'icon' => 'briefcase',
+                'guard_name' => 'web',
+                'name_alias' => 'Sales Staff',
+                'icon' => 'user',
                 'position' => 4,
                 'status' => true,
             ]
         );
 
-        $salesManagerPermissions = Permission::whereIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'Accountant'],
             [
-                'Dashboard',
-                'Leads',
-                'Customers',
-                'Contacts',
-                'Follow-ups',
-                'Tasks',
-                'Quotations',
-                'Sales Orders',
-                'Products',
-                'Reports',
-            ]
-        )->pluck('id')->toArray();
-
-        $salesManager->permissions()->sync(
-            $salesManagerPermissions
-        );
-
-        $salesExecutive = Role::updateOrCreate(
-            [
-                'name' => 'Sales Executive',
-            ],
-            [
-                'name_alias' => 'Sales Staff',
-                'icon' => 'user',
+                'guard_name' => 'web',
+                'name_alias' => 'Accounts Staff',
+                'icon' => 'dollar-sign',
                 'position' => 5,
                 'status' => true,
             ]
         );
 
-        $salesExecutivePermissions = Permission::whereIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'HR'],
             [
-                'Dashboard',
-                'Leads',
-                'Customers',
-                'Contacts',
-                'Follow-ups',
-                'Tasks',
-                'Quotations',
-                'Products',
-            ]
-        )->whereIn(
-            'action',
-            [
-                'view',
-                'create',
-                'edit',
-            ]
-        )->pluck('id')->toArray();
-
-        $salesExecutive->permissions()->sync(
-            $salesExecutivePermissions
-        );
-
-        $accountant = Role::updateOrCreate(
-            [
-                'name' => 'Accountant',
-            ],
-            [
-                'name_alias' => 'Accounts Staff',
-                'icon' => 'dollar-sign',
+                'guard_name' => 'web',
+                'name_alias' => 'HR Staff',
+                'icon' => 'people',
                 'position' => 6,
                 'status' => true,
             ]
         );
 
-        $accountantPermissions = Permission::whereIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'Support Executive'],
             [
-                'Dashboard',
-                'Customers',
-                'Invoices',
-                'Payments',
-                'Expenses',
-                'Reports',
-            ]
-        )->whereIn(
-            'action',
-            [
-                'view',
-                'create',
-                'edit',
-                'export',
-            ]
-        )->pluck('id')->toArray();
-
-        $accountant->permissions()->sync(
-            $accountantPermissions
-        );
-
-        $support = Role::updateOrCreate(
-            [
-                'name' => 'Support Executive',
-            ],
-            [
+                'guard_name' => 'web',
                 'name_alias' => 'Support Staff',
                 'icon' => 'headphones',
                 'position' => 7,
@@ -204,47 +86,26 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        $supportPermissions = Permission::whereIn(
-            'module',
+        Role::updateOrCreate(
+            ['name' => 'Developer'],
             [
-                'Dashboard',
-                'Customers',
-                'Contacts',
-                'Follow-ups',
-                'Tasks',
-            ]
-        )->whereIn(
-            'action',
-            [
-                'view',
-                'create',
-                'edit',
-            ]
-        )->pluck('id')->toArray();
-
-        $support->permissions()->sync(
-            $supportPermissions
-        );
-
-        $viewer = Role::updateOrCreate(
-            [
-                'name' => 'Viewer',
-            ],
-            [
-                'name_alias' => 'Read Only',
-                'icon' => 'eye',
+                'guard_name' => 'web',
+                'name_alias' => 'Developer',
+                'icon' => 'code-slash',
                 'position' => 8,
                 'status' => true,
             ]
         );
 
-        $viewerPermissions = Permission::where(
-            'action',
-            'view'
-        )->pluck('id')->toArray();
-
-        $viewer->permissions()->sync(
-            $viewerPermissions
+        Role::updateOrCreate(
+            ['name' => 'Client'],
+            [
+                'guard_name' => 'web',
+                'name_alias' => 'Client User',
+                'icon' => 'person',
+                'position' => 9,
+                'status' => true,
+            ]
         );
     }
 }

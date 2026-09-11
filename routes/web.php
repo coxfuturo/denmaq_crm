@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoleController;
@@ -17,22 +18,58 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ProfileController;
 
+
+/*
+|--------------------------------------------------------------------------
+| Login
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', [LoginController::class, 'showLogin'])
     ->name('login');
 
 Route::post('/login', [LoginController::class, 'login'])
     ->name('loginDashboard');
 
+
+/*
+|--------------------------------------------------------------------------
+| Logout
+|--------------------------------------------------------------------------
+*/
+
 Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Users
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/users', [UserController::class, 'index'])
             ->middleware('permission:users.view')
@@ -78,6 +115,13 @@ Route::middleware('auth')
             ->middleware('permission:users.status')
             ->name('users.status');
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Roles
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/roles', [RoleController::class, 'index'])
             ->middleware('permission:roles.view')
             ->name('roles.index');
@@ -118,9 +162,16 @@ Route::middleware('auth')
             ->middleware('permission:roles.restore')
             ->name('roles.restore');
 
-        Route::resource('permissions', PermissionController::class)
-            ->except(['show'])
-            ->middleware('permission:permissions.view');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Permissions
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/permissions', [PermissionController::class, 'index'])
+            ->middleware('permission:permissions.view')
+            ->name('permissions.index');
 
         Route::get('/permissions/create', [PermissionController::class, 'create'])
             ->middleware('permission:permissions.create')
@@ -138,6 +189,10 @@ Route::middleware('auth')
             ->middleware('permission:permissions.edit')
             ->name('permissions.update');
 
+        Route::patch('/permissions/{id}', [PermissionController::class, 'update'])
+            ->middleware('permission:permissions.edit')
+            ->name('permissions.update.patch');
+
         Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])
             ->middleware('permission:permissions.delete')
             ->name('permissions.destroy');
@@ -145,6 +200,13 @@ Route::middleware('auth')
         Route::get('/permissions/{id}/status', [PermissionController::class, 'status'])
             ->middleware('permission:permissions.status')
             ->name('permissions.status');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Leads
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/leads', [LeadController::class, 'index'])
             ->middleware('permission:leads.view')
@@ -198,6 +260,13 @@ Route::middleware('auth')
             ->middleware('permission:leads.import')
             ->name('leads.import');
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Clients
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/clients', [ClientController::class, 'index'])
             ->middleware('permission:clients.view')
             ->name('clients.index');
@@ -250,20 +319,207 @@ Route::middleware('auth')
             ->middleware('permission:clients.status')
             ->name('clients.changeStatus');
 
-        Route::resource('followups', FollowUpController::class)
-            ->middleware('permission:followups.view');
 
-        Route::resource('projects', ProjectController::class)
-            ->middleware('permission:projects.view');
+        /*
+        |--------------------------------------------------------------------------
+        | Follow Ups
+        |--------------------------------------------------------------------------
+        */
 
-        Route::resource('quotations', QuotationController::class)
-            ->middleware('permission:quotations.view');
+        Route::get('/followups', [FollowUpController::class, 'index'])
+            ->middleware('permission:followups.view')
+            ->name('followups.index');
 
-        Route::resource('invoices', InvoiceController::class)
-            ->middleware('permission:invoices.view');
+        Route::get('/followups/create', [FollowUpController::class, 'create'])
+            ->middleware('permission:followups.create')
+            ->name('followups.create');
 
-        Route::resource('payments', PaymentController::class)
-            ->middleware('permission:payments.view');
+        Route::post('/followups', [FollowUpController::class, 'store'])
+            ->middleware('permission:followups.create')
+            ->name('followups.store');
+
+        Route::get('/followups/{followup}', [FollowUpController::class, 'show'])
+            ->middleware('permission:followups.view')
+            ->name('followups.show');
+
+        Route::get('/followups/{followup}/edit', [FollowUpController::class, 'edit'])
+            ->middleware('permission:followups.edit')
+            ->name('followups.edit');
+
+        Route::put('/followups/{followup}', [FollowUpController::class, 'update'])
+            ->middleware('permission:followups.edit')
+            ->name('followups.update');
+
+        Route::patch('/followups/{followup}', [FollowUpController::class, 'update'])
+            ->middleware('permission:followups.edit')
+            ->name('followups.update.patch');
+
+        Route::delete('/followups/{followup}', [FollowUpController::class, 'destroy'])
+            ->middleware('permission:followups.delete')
+            ->name('followups.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Projects
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/projects', [ProjectController::class, 'index'])
+            ->middleware('permission:projects.view')
+            ->name('projects.index');
+
+        Route::get('/projects/create', [ProjectController::class, 'create'])
+            ->middleware('permission:projects.create')
+            ->name('projects.create');
+
+        Route::post('/projects', [ProjectController::class, 'store'])
+            ->middleware('permission:projects.create')
+            ->name('projects.store');
+
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])
+            ->middleware('permission:projects.view')
+            ->name('projects.show');
+
+        Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
+            ->middleware('permission:projects.edit')
+            ->name('projects.edit');
+
+        Route::put('/projects/{project}', [ProjectController::class, 'update'])
+            ->middleware('permission:projects.edit')
+            ->name('projects.update');
+
+        Route::patch('/projects/{project}', [ProjectController::class, 'update'])
+            ->middleware('permission:projects.edit')
+            ->name('projects.update.patch');
+
+        Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
+            ->middleware('permission:projects.delete')
+            ->name('projects.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Quotations
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/quotations', [QuotationController::class, 'index'])
+            ->middleware('permission:quotations.view')
+            ->name('quotations.index');
+
+        Route::get('/quotations/create', [QuotationController::class, 'create'])
+            ->middleware('permission:quotations.create')
+            ->name('quotations.create');
+
+        Route::post('/quotations', [QuotationController::class, 'store'])
+            ->middleware('permission:quotations.create')
+            ->name('quotations.store');
+
+        Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])
+            ->middleware('permission:quotations.view')
+            ->name('quotations.show');
+
+        Route::get('/quotations/{quotation}/edit', [QuotationController::class, 'edit'])
+            ->middleware('permission:quotations.edit')
+            ->name('quotations.edit');
+
+        Route::put('/quotations/{quotation}', [QuotationController::class, 'update'])
+            ->middleware('permission:quotations.edit')
+            ->name('quotations.update');
+
+        Route::patch('/quotations/{quotation}', [QuotationController::class, 'update'])
+            ->middleware('permission:quotations.edit')
+            ->name('quotations.update.patch');
+
+        Route::delete('/quotations/{quotation}', [QuotationController::class, 'destroy'])
+            ->middleware('permission:quotations.delete')
+            ->name('quotations.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invoices
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/invoices', [InvoiceController::class, 'index'])
+            ->middleware('permission:invoices.view')
+            ->name('invoices.index');
+
+        Route::get('/invoices/create', [InvoiceController::class, 'create'])
+            ->middleware('permission:invoices.create')
+            ->name('invoices.create');
+
+        Route::post('/invoices', [InvoiceController::class, 'store'])
+            ->middleware('permission:invoices.create')
+            ->name('invoices.store');
+
+        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])
+            ->middleware('permission:invoices.view')
+            ->name('invoices.show');
+
+        Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])
+            ->middleware('permission:invoices.edit')
+            ->name('invoices.edit');
+
+        Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])
+            ->middleware('permission:invoices.edit')
+            ->name('invoices.update');
+
+        Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])
+            ->middleware('permission:invoices.edit')
+            ->name('invoices.update.patch');
+
+        Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])
+            ->middleware('permission:invoices.delete')
+            ->name('invoices.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Payments
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/payments', [PaymentController::class, 'index'])
+            ->middleware('permission:payments.view')
+            ->name('payments.index');
+
+        Route::get('/payments/create', [PaymentController::class, 'create'])
+            ->middleware('permission:payments.create')
+            ->name('payments.create');
+
+        Route::post('/payments', [PaymentController::class, 'store'])
+            ->middleware('permission:payments.create')
+            ->name('payments.store');
+
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])
+            ->middleware('permission:payments.view')
+            ->name('payments.show');
+
+        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])
+            ->middleware('permission:payments.edit')
+            ->name('payments.edit');
+
+        Route::put('/payments/{payment}', [PaymentController::class, 'update'])
+            ->middleware('permission:payments.edit')
+            ->name('payments.update');
+
+        Route::patch('/payments/{payment}', [PaymentController::class, 'update'])
+            ->middleware('permission:payments.edit')
+            ->name('payments.update.patch');
+
+        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])
+            ->middleware('permission:payments.delete')
+            ->name('payments.destroy');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reports
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/reports/leads', [ReportController::class, 'leadReport'])
             ->middleware('permission:reports.leads')
@@ -277,6 +533,13 @@ Route::middleware('auth')
             ->middleware('permission:reports.users')
             ->name('reports.users');
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Company Settings
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/settings/company', [SettingController::class, 'company'])
             ->middleware('permission:settings.company')
             ->name('settings.company');
@@ -285,6 +548,13 @@ Route::middleware('auth')
             ->middleware('permission:settings.company.update')
             ->name('settings.company.update');
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/profile', [ProfileController::class, 'index'])
             ->middleware('permission:profile.view')
             ->name('profile');
@@ -292,4 +562,5 @@ Route::middleware('auth')
         Route::post('/profile', [ProfileController::class, 'update'])
             ->middleware('permission:profile.edit')
             ->name('profile.update');
+
     });
