@@ -12,19 +12,12 @@ class Permission extends SpatiePermission
         'module',
         'route',
         'action',
-        'description',
         'position',
         'status',
-        'created_by',
     ];
 
     protected $casts = [
         'position' => 'integer',
         'status' => 'boolean',
     ];
-
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
 }

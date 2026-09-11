@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('leads', function (Blueprint $table) {
@@ -47,12 +44,21 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->timestamps();
+
+            $table->softDeletes();
+
+            $table->index('status');
+
+            $table->index('source');
+
+            $table->index('assigned_to');
+
+            $table->index('created_by');
+
+            $table->index('follow_up_date');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('leads');

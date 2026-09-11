@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\PermissionRegistrar;
 
 class RoleController extends Controller
 {
@@ -49,42 +50,45 @@ class RoleController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:roles,name'
+                'unique:roles,name',
             ],
             'name_alias' => [
                 'nullable',
                 'string',
-                'max:255'
+                'max:255',
             ],
             'icon' => [
                 'nullable',
                 'string',
-                'max:100'
+                'max:100',
             ],
             'position' => [
                 'nullable',
                 'integer',
-                'min:0'
+                'min:0',
             ],
             'status' => [
                 'nullable',
-                'boolean'
+                'boolean',
             ],
             'permissions' => [
                 'nullable',
-                'array'
-            ]
+                'array',
+            ],
         ]);
 
         $role = Role::create([
             'name' => $request->name,
+            'guard_name' => 'web',
             'name_alias' => $request->name_alias,
             'icon' => $request->icon,
             'position' => $request->position ?? 0,
-            'status' => $request->has('status') ? 1 : 0
+            'status' => $request->boolean('status'),
         ]);
 
         $role->permissions()->sync($request->permissions ?? []);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()
             ->route('admin.roles.index')
@@ -125,31 +129,31 @@ class RoleController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:roles,name,' . $role->id
+                'unique:roles,name,' . $role->id,
             ],
             'name_alias' => [
                 'nullable',
                 'string',
-                'max:255'
+                'max:255',
             ],
             'icon' => [
                 'nullable',
                 'string',
-                'max:100'
+                'max:100',
             ],
             'position' => [
                 'nullable',
                 'integer',
-                'min:0'
+                'min:0',
             ],
             'status' => [
                 'nullable',
-                'boolean'
+                'boolean',
             ],
             'permissions' => [
                 'nullable',
-                'array'
-            ]
+                'array',
+            ],
         ]);
 
         $role->update([
@@ -157,10 +161,12 @@ class RoleController extends Controller
             'name_alias' => $request->name_alias,
             'icon' => $request->icon,
             'position' => $request->position ?? $role->position,
-            'status' => $request->has('status') ? 1 : 0
+            'status' => $request->boolean('status'),
         ]);
 
         $role->permissions()->sync($request->permissions ?? []);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()
             ->route('admin.roles.index')
@@ -177,7 +183,7 @@ class RoleController extends Controller
                 ->with('error', 'Super Admin status cannot be changed.');
         }
 
-        $role->status = $role->status == 1 ? 0 : 1;
+        $role->status = !$role->status;
         $role->save();
 
         return redirect()
@@ -192,7 +198,7 @@ class RoleController extends Controller
         if ($role->name === 'Super Admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Super Admin position cannot be changed.'
+                'message' => 'Super Admin position cannot be changed.',
             ], 403);
         }
 
@@ -200,8 +206,8 @@ class RoleController extends Controller
             'position' => [
                 'required',
                 'integer',
-                'min:0'
-            ]
+                'min:0',
+            ],
         ]);
 
         $oldPosition = (int) $role->position;
@@ -211,7 +217,7 @@ class RoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Position is already set.',
-                'position' => $role->position
+                'position' => $role->position,
             ]);
         }
 
@@ -233,7 +239,7 @@ class RoleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Role position updated successfully.',
-            'position' => $role->position
+            'position' => $role->position,
         ]);
     }
 

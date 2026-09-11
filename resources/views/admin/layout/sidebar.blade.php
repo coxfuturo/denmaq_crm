@@ -1,4 +1,3 @@
-```blade
 <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
 
     <div class="sidebar-header">
@@ -464,4 +463,3 @@
     </div>
 
 </aside>
-```

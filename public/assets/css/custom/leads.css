@@ -1,0 +1,171 @@
+body {
+    background: #f5f7fa;
+}
+.container-fluid {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+.page-title-box {
+    padding: 20px 0;
+    margin-bottom: 15px;
+}
+.page-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 0;
+}
+.card {
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+}
+.card-header {
+    background: #ffffff;
+    border-bottom: 1px solid #eef1f5;
+    padding: 18px 20px;
+}
+.card-body {
+    padding: 20px;
+}
+.header-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+.form-label {
+    font-weight: 500;
+    margin-bottom: 7px;
+}
+.form-control,
+.form-select {
+    min-height: 40px;
+    border-radius: 5px;
+    border: 1px solid #d9dee5;
+}
+.form-control:focus,
+.form-select:focus {
+    border-color: #727cf5;
+    box-shadow: 0 0 0 0.15rem rgba(114, 124, 245, 0.15);
+}
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+}
+.table {
+    margin-bottom: 0;
+}
+.table thead th {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    background: #f8f9fb;
+    padding: 12px;
+    vertical-align: middle;
+}
+.table tbody td {
+    vertical-align: middle;
+    padding: 13px 12px;
+}
+.table tbody tr:hover {
+    background: #f8f9fc;
+}
+.badge {
+    padding: 6px 9px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+}
+.alert {
+    border-radius: 6px;
+}
+.invalid-feedback {
+    font-size: 12px;
+}
+.text-muted {
+    color: #6c757d !important;
+}
+.lead-info-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+.lead-info-value {
+    font-size: 14px;
+    color: #6c757d;
+}
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    white-space: nowrap;
+}
+.action-buttons form {
+    margin: 0;
+}
+.action-buttons .btn {
+    flex-shrink: 0;
+}
+.lead-notes {
+    background: #f8f9fb;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 80px;
+    white-space: normal;
+    word-break: break-word;
+}
+.other-info-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eef1f5;
+}
+.other-info-item:last-child {
+    border-bottom: 0;
+}
+.other-info-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 4px;
+}
+.other-info-value {
+    font-size: 14px;
+    color: #6c757d;
+}
+@media (max-width: 767px) {
+    .container-fluid {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .page-title-box {
+        display: block !important;
+    }
+    .page-title-box > div:last-child {
+        margin-top: 12px;
+    }
+    .page-title-box .btn {
+        margin-bottom: 5px;
+    }
+    .card-body {
+        padding: 15px;
+    }
+    .card-header {
+        padding: 15px;
+    }
+    .table {
+        min-width: 1000px;
+    }
+    .action-buttons {
+        flex-wrap: nowrap;
+    }
+}

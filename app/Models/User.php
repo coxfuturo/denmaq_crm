@@ -40,4 +40,20 @@ class User extends Authenticatable
             'status' => 'boolean',
         ];
     }
+
+    public function assignedLeads()
+    {
+        return $this->hasMany(
+            Lead::class,
+            'assigned_to'
+        );
+    }
+
+    public function createdLeads()
+    {
+        return $this->hasMany(
+            Lead::class,
+            'created_by'
+        );
+    }
 }
