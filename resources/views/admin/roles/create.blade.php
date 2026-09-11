@@ -16,7 +16,6 @@
 <div class="container-fluid role-page">
 
     <div class="page-header d-flex justify-content-between align-items-center">
-
         <div>
             <h2 class="page-title">Create Role</h2>
             <p class="page-description">
@@ -24,50 +23,38 @@
             </p>
         </div>
 
-        @if($can('roles.view'))
+        @if($can('Roles View'))
             <a href="{{ route('admin.roles.index') }}" class="btn btn-light">
                 <i data-feather="arrow-left"></i>
                 <span class="ms-1">Back</span>
             </a>
         @endif
-
     </div>
 
     @if($errors->any())
-
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-
             <div class="d-flex">
-
                 <i data-feather="alert-circle" class="me-2"></i>
-
                 <div>
-
                     <strong>Please fix the following errors:</strong>
 
                     <ul class="mb-0 mt-2">
-
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
-
                     </ul>
-
                 </div>
-
             </div>
 
             <button
                 type="button"
                 class="btn-close"
-                data-bs-dismiss="alert"
-            ></button>
-
+                data-bs-dismiss="alert">
+            </button>
         </div>
-
     @endif
 
-    @if(!$can('roles.create'))
+    @if(!$can('Roles Create'))
 
         <div class="alert alert-danger">
             You do not have permission to create roles.
@@ -75,23 +62,18 @@
 
     @else
 
-        <form
-            action="{{ route('admin.roles.store') }}"
-            method="POST"
-        >
+        <form action="{{ route('admin.roles.store') }}" method="POST">
 
             @csrf
 
             <div class="card mb-4">
 
                 <div class="card-header">
-
                     <h5>Role Information</h5>
 
                     <small>
                         Enter basic information for this role.
                     </small>
-
                 </div>
 
                 <div class="card-body">
@@ -215,8 +197,7 @@
 
                                 <label
                                     class="form-check-label"
-                                    for="status"
-                                >
+                                    for="status">
                                     Active
                                 </label>
 
@@ -237,13 +218,11 @@
                     <div class="permissions-header d-flex justify-content-between align-items-center">
 
                         <div>
-
                             <h5>Permissions</h5>
 
                             <small>
                                 Select permissions for this role.
                             </small>
-
                         </div>
 
                         <div class="permission-actions d-flex gap-2">
@@ -251,8 +230,7 @@
                             <button
                                 type="button"
                                 class="btn btn-sm btn-outline-primary"
-                                id="selectAll"
-                            >
+                                id="selectAll">
 
                                 <i data-feather="check-square"></i>
 
@@ -265,8 +243,7 @@
                             <button
                                 type="button"
                                 class="btn btn-sm btn-outline-secondary"
-                                id="deselectAll"
-                            >
+                                id="deselectAll">
 
                                 <i data-feather="square"></i>
 
@@ -287,13 +264,24 @@
                     @forelse($permissions as $module => $modulePermissions)
 
                         @php
-                            $moduleSlug = \Illuminate\Support\Str::slug($module ?: 'other-permissions');
-                            $permissionNames = $modulePermissions->pluck('name')->toArray();
+                            $moduleName = $module ?: 'Other Permissions';
+
+                            $moduleSlug = \Illuminate\Support\Str::slug(
+                                $module ?: 'other-permissions'
+                            );
+
+                            $permissionNames = $modulePermissions
+                                ->pluck('name')
+                                ->toArray();
+
                             $oldPermissions = old('permissions', []);
 
                             $moduleSelected =
                                 count($permissionNames) > 0 &&
-                                count(array_diff($permissionNames, $oldPermissions)) === 0;
+                                count(array_diff(
+                                    $permissionNames,
+                                    $oldPermissions
+                                )) === 0;
                         @endphp
 
                         <div class="permission-module">
@@ -305,7 +293,7 @@
                                     <i data-feather="folder"></i>
 
                                     <span>
-                                        {{ $module ?: 'Other Permissions' }}
+                                        {{ $moduleName }}
                                     </span>
 
                                 </h6>
@@ -320,7 +308,8 @@
                                         {{ $moduleSelected ? 'checked' : '' }}
                                     >
 
-                                    <label for="module_{{ $moduleSlug }}">
+                                    <label
+                                        for="module_{{ $moduleSlug }}">
                                         Select Module
                                     </label>
 
@@ -335,7 +324,11 @@
                                     @php
                                         $permissionLabel = $permission->action
                                             ?: \Illuminate\Support\Str::headline(
-                                                str_replace('.', ' ', $permission->name)
+                                                str_replace(
+                                                    ['.', '_', '-'],
+                                                    ' ',
+                                                    $permission->name
+                                                )
                                             );
                                     @endphp
 
@@ -351,13 +344,16 @@
                                                     value="{{ $permission->name }}"
                                                     class="form-check-input permission-checkbox permission-{{ $moduleSlug }}"
                                                     id="permission_{{ $permission->id }}"
-                                                    {{ in_array($permission->name, $oldPermissions, true) ? 'checked' : '' }}
+                                                    {{ in_array(
+                                                        $permission->name,
+                                                        $oldPermissions,
+                                                        true
+                                                    ) ? 'checked' : '' }}
                                                 >
 
                                                 <label
                                                     class="form-check-label"
-                                                    for="permission_{{ $permission->id }}"
-                                                >
+                                                    for="permission_{{ $permission->id }}">
 
                                                     <strong>
                                                         {{ $permissionLabel }}
@@ -405,12 +401,11 @@
 
             <div class="form-footer">
 
-                @if($can('roles.view'))
+                @if($can('Roles View'))
 
                     <a
                         href="{{ route('admin.roles.index') }}"
-                        class="btn btn-light"
-                    >
+                        class="btn btn-light">
 
                         <i data-feather="x"></i>
 
@@ -424,8 +419,7 @@
 
                 <button
                     type="submit"
-                    class="btn btn-primary"
-                >
+                    class="btn btn-primary">
 
                     <i data-feather="save"></i>
 
@@ -445,194 +439,194 @@
 
 <style>
 
-    .role-page {
-        padding-bottom: 30px;
-    }
+.role-page {
+    padding-bottom: 30px;
+}
+
+.page-header {
+    margin-bottom: 20px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.page-description {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 15px 18px;
+}
+
+.card-header h5 {
+    margin-bottom: 3px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.card-header small {
+    color: #6c757d;
+}
+
+.permission-module {
+    border: 1px solid #dee2e6;
+    border-radius: 7px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.permission-module:last-child {
+    margin-bottom: 0;
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 10px 14px;
+}
+
+.module-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.module-title svg {
+    width: 16px;
+    height: 16px;
+}
+
+.module-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.module-select label {
+    cursor: pointer;
+    margin: 0;
+}
+
+.permission-module .row {
+    padding: 12px;
+}
+
+.permission-item {
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    padding: 9px 10px;
+    background: #fff;
+    height: 100%;
+}
+
+.permission-item:hover {
+    background: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.permission-item .form-check {
+    min-height: auto;
+    margin: 0;
+}
+
+.permission-item .form-check-label {
+    font-size: 13px;
+    cursor: pointer;
+    word-break: break-word;
+    display: block;
+}
+
+.permission-item .form-check-input {
+    cursor: pointer;
+}
+
+.permission-name {
+    display: block;
+    color: #6c757d;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+.permission-actions {
+    flex-wrap: wrap;
+}
+
+.empty-permission {
+    text-align: center;
+    padding: 50px 20px;
+    color: #6c757d;
+}
+
+.empty-permission svg {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 10px;
+}
+
+.empty-permission h5 {
+    margin-bottom: 5px;
+}
+
+.empty-permission p {
+    margin-bottom: 0;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-bottom: 20px;
+}
+
+@media(max-width: 767px) {
 
     .page-header {
-        margin-bottom: 20px;
+        align-items: flex-start !important;
+        gap: 10px;
     }
 
-    .page-title {
-        font-size: 22px;
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-
-    .page-description {
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-    }
-
-    .card-header {
-        background: #f8f9fa;
-        padding: 15px 18px;
-    }
-
-    .card-header h5 {
-        margin-bottom: 3px;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .card-header small {
-        color: #6c757d;
-    }
-
-    .permission-module {
-        border: 1px solid #dee2e6;
-        border-radius: 7px;
-        margin-bottom: 15px;
-        overflow: hidden;
-    }
-
-    .permission-module:last-child {
-        margin-bottom: 0;
+    .permissions-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
     }
 
     .module-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        padding: 10px 14px;
-    }
-
-    .module-title {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .module-title svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .module-select {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: #495057;
-    }
-
-    .module-select label {
-        cursor: pointer;
-        margin: 0;
-    }
-
-    .permission-module .row {
-        padding: 12px;
-    }
-
-    .permission-item {
-        border: 1px solid #e9ecef;
-        border-radius: 5px;
-        padding: 9px 10px;
-        background: #fff;
-        height: 100%;
-    }
-
-    .permission-item:hover {
-        background: #f8f9fa;
-        border-color: #ced4da;
-    }
-
-    .permission-item .form-check {
-        min-height: auto;
-        margin: 0;
-    }
-
-    .permission-item .form-check-label {
-        font-size: 13px;
-        cursor: pointer;
-        word-break: break-word;
-        display: block;
-    }
-
-    .permission-item .form-check-input {
-        cursor: pointer;
-    }
-
-    .permission-name {
-        display: block;
-        color: #6c757d;
-        font-size: 10px;
-        margin-top: 2px;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .permission-actions {
-        flex-wrap: wrap;
-    }
-
-    .empty-permission {
-        text-align: center;
-        padding: 50px 20px;
-        color: #6c757d;
-    }
-
-    .empty-permission svg {
-        width: 45px;
-        height: 45px;
-        margin-bottom: 10px;
-    }
-
-    .empty-permission h5 {
-        margin-bottom: 5px;
-    }
-
-    .empty-permission p {
-        margin-bottom: 0;
+        width: 100%;
     }
 
     .form-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        padding-bottom: 20px;
+        justify-content: stretch;
     }
 
-    @media(max-width: 767px) {
-
-        .page-header {
-            align-items: flex-start !important;
-            gap: 10px;
-        }
-
-        .permissions-header {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 12px;
-        }
-
-        .module-header {
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .permission-actions {
-            width: 100%;
-        }
-
-        .form-footer {
-            justify-content: stretch;
-        }
-
-        .form-footer .btn {
-            flex: 1;
-        }
-
+    .form-footer .btn {
+        flex: 1;
     }
+
+}
 
 </style>
 

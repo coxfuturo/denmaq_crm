@@ -5,15 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
 use App\Models\User;
+use App\Imports\LeadsImport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeadController extends Controller
 {
     private function checkPermission(string $permission): void
     {
+        $user = auth()->user();
+
         abort_unless(
-            auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can($permission),
+            $user &&
+            (
+                $user->hasRole('Super Admin') ||
+                $user->can($permission)
+            ),
             403,
             'You do not have permission to perform this action.'
         );
@@ -21,7 +28,7 @@ class LeadController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('leads.view');
+        $this->checkPermission('Leads View');
 
         $query = Lead::with(['assignedUser', 'creator']);
 
@@ -78,7 +85,15 @@ class LeadController extends Controller
 
         $perPage = (int) $request->get('per_page', 15);
 
-        $allowedPerPage = [10, 15, 25, 50, 100, 200, 500];
+        $allowedPerPage = [
+            10,
+            15,
+            25,
+            50,
+            100,
+            200,
+            500
+        ];
 
         if (!in_array($perPage, $allowedPerPage, true)) {
             $perPage = 15;
@@ -125,7 +140,7 @@ class LeadController extends Controller
 
     public function create()
     {
-        $this->checkPermission('leads.create');
+        $this->checkPermission('Leads Create');
 
         $users = User::where('status', 1)
             ->orderBy('first_name')
@@ -162,7 +177,7 @@ class LeadController extends Controller
 
     public function store(Request $request)
     {
-        $this->checkPermission('leads.create');
+        $this->checkPermission('Leads Create');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -188,9 +203,27 @@ class LeadController extends Controller
             ->with('success', 'Lead created successfully.');
     }
 
+    public function import(Request $request)
+    {
+        $this->checkPermission('Leads Create');
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        Excel::import(
+            new LeadsImport,
+            $request->file('file')
+        );
+
+        return redirect()
+            ->route('admin.leads.index')
+            ->with('success', 'Leads imported successfully.');
+    }
+
     public function show(Lead $lead)
     {
-        $this->checkPermission('leads.view');
+        $this->checkPermission('Leads View');
 
         $lead->load(['assignedUser', 'creator']);
 
@@ -199,7 +232,7 @@ class LeadController extends Controller
 
     public function edit(Lead $lead)
     {
-        $this->checkPermission('leads.edit');
+        $this->checkPermission('Leads Edit');
 
         $users = User::where('status', 1)
             ->orderBy('first_name')
@@ -237,7 +270,7 @@ class LeadController extends Controller
 
     public function update(Request $request, Lead $lead)
     {
-        $this->checkPermission('leads.edit');
+        $this->checkPermission('Leads Edit');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -263,7 +296,7 @@ class LeadController extends Controller
 
     public function changeStatus(Request $request, Lead $lead)
     {
-        $this->checkPermission('leads.status');
+        $this->checkPermission('Leads Edit');
 
         $validated = $request->validate([
             'status' => 'required|string|max:100',
@@ -280,7 +313,7 @@ class LeadController extends Controller
 
     public function destroy(Lead $lead)
     {
-        $this->checkPermission('leads.delete');
+        $this->checkPermission('Leads Delete');
 
         $lead->delete();
 
@@ -291,7 +324,7 @@ class LeadController extends Controller
 
     public function trash(Request $request)
     {
-        $this->checkPermission('leads.restore');
+        $this->checkPermission('Leads Delete');
 
         $query = Lead::onlyTrashed()
             ->with(['assignedUser', 'creator']);
@@ -319,7 +352,7 @@ class LeadController extends Controller
 
     public function restore($id)
     {
-        $this->checkPermission('leads.restore');
+        $this->checkPermission('Leads Delete');
 
         $lead = Lead::onlyTrashed()->findOrFail($id);
 
@@ -332,7 +365,7 @@ class LeadController extends Controller
 
     public function forceDelete($id)
     {
-        $this->checkPermission('leads.force-delete');
+        $this->checkPermission('Leads Delete');
 
         $lead = Lead::onlyTrashed()->findOrFail($id);
 

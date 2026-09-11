@@ -28,7 +28,7 @@ class RoleController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('roles.view');
+        $this->checkPermission('Roles View');
 
         if ($request->query('view') === 'trash') {
             $roles = Role::onlyTrashed()
@@ -51,7 +51,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        $this->checkPermission('roles.create');
+        $this->checkPermission('Roles Create');
 
         $permissions = Permission::where('guard_name', 'web')
             ->where('status', true)
@@ -65,7 +65,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        $this->checkPermission('roles.create');
+        $this->checkPermission('Roles Create');
 
         $validated = $request->validate([
             'name' => [
@@ -131,7 +131,7 @@ class RoleController extends Controller
 
     public function edit($id)
     {
-        $this->checkPermission('roles.edit');
+        $this->checkPermission('Roles Edit');
 
         $role = Role::with('permissions')->findOrFail($id);
 
@@ -151,15 +151,15 @@ class RoleController extends Controller
             ->get()
             ->groupBy('module');
 
-        return view('admin.roles.edit', compact(
-            'role',
-            'permissions'
-        ));
+        return view(
+            'admin.roles.edit',
+            compact('role', 'permissions')
+        );
     }
 
     public function update(Request $request, $id)
     {
-        $this->checkPermission('roles.edit');
+        $this->checkPermission('Roles Edit');
 
         $role = Role::findOrFail($id);
 
@@ -235,7 +235,7 @@ class RoleController extends Controller
 
     public function status($id)
     {
-        $this->checkPermission('roles.status');
+        $this->checkPermission('Roles Edit');
 
         $role = Role::findOrFail($id);
 
@@ -261,9 +261,14 @@ class RoleController extends Controller
             );
     }
 
+    public function changeStatus($id)
+    {
+        return $this->status($id);
+    }
+
     public function position(Request $request, $id)
     {
-        $this->checkPermission('roles.edit');
+        $this->checkPermission('Roles Edit');
 
         $role = Role::findOrFail($id);
 
@@ -321,7 +326,7 @@ class RoleController extends Controller
 
     public function destroy($id)
     {
-        $this->checkPermission('roles.delete');
+        $this->checkPermission('Roles Delete');
 
         $role = Role::findOrFail($id);
 
@@ -357,7 +362,7 @@ class RoleController extends Controller
 
     public function restore($id)
     {
-        $this->checkPermission('roles.restore');
+        $this->checkPermission('Roles Delete');
 
         $role = Role::withTrashed()->findOrFail($id);
 
