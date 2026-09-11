@@ -4,21 +4,26 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.view'),
+            403
+        );
+
         $view = $request->query('view', 'active');
 
-        if ($view === 'trash') {
-            $query = User::onlyTrashed();
-        } else {
-            $query = User::query();
-        }
+        $query = $view === 'trash'
+            ? User::onlyTrashed()
+            : User::query();
 
         $search = trim($request->query('search', ''));
 
@@ -65,14 +70,7 @@ class UserController extends Controller
 
         $query->orderBy($sort, $direction);
 
-        $allowedPerPage = [
-            10,
-            25,
-            50,
-            100,
-            200,
-            500,
-        ];
+        $allowedPerPage = [10, 25, 50, 100, 200, 500];
 
         $perPage = (int) $request->query('per_page', 10);
 
@@ -97,68 +95,40 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::orderBy('name')->get();
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.create'),
+            403
+        );
+
+        $roles = Role::where('status', true)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.users.create', compact('roles'));
     }
 
     public function store(Request $request)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.create'),
+            403
+        );
+
         $validated = $request->validate([
-            'first_name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-            'last_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:users,email',
-            ],
-            'mobile' => [
-                'nullable',
-                'string',
-                'max:13',
-            ],
-            'password' => [
-                'required',
-                'string',
-                'min:6',
-                'confirmed',
-            ],
-            'type' => [
-                'required',
-                'in:admin,company,customer',
-            ],
-            'is_admin' => [
-                'nullable',
-                'boolean',
-            ],
-            'status' => [
-                'required',
-                'boolean',
-            ],
-            'company_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'profile_image' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
-            'role' => [
-                'nullable',
-                'exists:roles,name',
-            ],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'mobile' => ['nullable', 'string', 'max:13'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'type' => ['required', 'in:admin,company,customer'],
+            'is_admin' => ['nullable', 'boolean'],
+            'status' => ['required', 'boolean'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'role' => ['nullable', 'exists:roles,name'],
         ]);
 
         if ($request->hasFile('profile_image')) {
@@ -173,11 +143,26 @@ class UserController extends Controller
             $validated['is_admin'] = true;
         }
 
+        $role = $request->filled('role')
+            ? Role::where('name', $request->role)
+                ->where('guard_name', 'web')
+                ->where('status', true)
+                ->first()
+            : null;
+
+        if ($request->filled('role') && !$role) {
+            return back()
+                ->withInput()
+                ->with('error', 'Selected role is invalid or inactive.');
+        }
+
         $user = User::create($validated);
 
-        if ($request->filled('role')) {
-            $user->assignRole($request->role);
+        if ($role) {
+            $user->assignRole($role);
         }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()
             ->route('admin.users.index')
@@ -186,6 +171,12 @@ class UserController extends Controller
 
     public function show(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.view'),
+            403
+        );
+
         $user = User::withTrashed()
             ->with('roles')
             ->findOrFail($id);
@@ -195,71 +186,49 @@ class UserController extends Controller
 
     public function edit(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.edit'),
+            403
+        );
+
         $user = User::findOrFail($id);
-        $roles = Role::orderBy('name')->get();
+
+        $roles = Role::where('status', true)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.edit'),
+            403
+        );
+
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'first_name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-            'last_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
             'email' => [
                 'required',
                 'email',
                 'max:255',
-                'unique:users,email,' . $user->id,
+                'unique:users,email,' . $user->id
             ],
-            'mobile' => [
-                'nullable',
-                'string',
-                'max:13',
-            ],
-            'password' => [
-                'nullable',
-                'string',
-                'min:6',
-                'confirmed',
-            ],
-            'type' => [
-                'required',
-                'in:admin,company,customer',
-            ],
-            'is_admin' => [
-                'nullable',
-                'boolean',
-            ],
-            'status' => [
-                'required',
-                'boolean',
-            ],
-            'company_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'profile_image' => [
-                'nullable',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
-            'role' => [
-                'nullable',
-                'exists:roles,name',
-            ],
+            'mobile' => ['nullable', 'string', 'max:13'],
+            'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+            'type' => ['required', 'in:admin,company,customer'],
+            'is_admin' => ['nullable', 'boolean'],
+            'status' => ['required', 'boolean'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'role' => ['nullable', 'exists:roles,name'],
         ]);
 
         if (empty($validated['password'])) {
@@ -267,7 +236,10 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('profile_image')) {
-            if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
+            if (
+                $user->profile_image &&
+                Storage::disk('public')->exists($user->profile_image)
+            ) {
                 Storage::disk('public')->delete($user->profile_image);
             }
 
@@ -282,13 +254,28 @@ class UserController extends Controller
             $validated['is_admin'] = true;
         }
 
+        $role = $request->filled('role')
+            ? Role::where('name', $request->role)
+                ->where('guard_name', 'web')
+                ->where('status', true)
+                ->first()
+            : null;
+
+        if ($request->filled('role') && !$role) {
+            return back()
+                ->withInput()
+                ->with('error', 'Selected role is invalid or inactive.');
+        }
+
         $user->update($validated);
 
-        if ($request->filled('role')) {
-            $user->syncRoles([$request->role]);
+        if ($role) {
+            $user->syncRoles([$role]);
         } else {
             $user->syncRoles([]);
         }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()
             ->route('admin.users.index')
@@ -297,6 +284,12 @@ class UserController extends Controller
 
     public function destroy(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.delete'),
+            403
+        );
+
         $user = User::findOrFail($id);
 
         $user->delete();
@@ -308,6 +301,12 @@ class UserController extends Controller
 
     public function restore(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.restore'),
+            403
+        );
+
         $user = User::onlyTrashed()
             ->findOrFail($id);
 
@@ -320,10 +319,19 @@ class UserController extends Controller
 
     public function forceDelete(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.force-delete'),
+            403
+        );
+
         $user = User::onlyTrashed()
             ->findOrFail($id);
 
-        if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
+        if (
+            $user->profile_image &&
+            Storage::disk('public')->exists($user->profile_image)
+        ) {
             Storage::disk('public')->delete($user->profile_image);
         }
 
@@ -336,6 +344,12 @@ class UserController extends Controller
 
     public function status(string $id)
     {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can('users.status'),
+            403
+        );
+
         $user = User::findOrFail($id);
 
         $user->status = !$user->status;

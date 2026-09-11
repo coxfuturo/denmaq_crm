@@ -1,22 +1,36 @@
 <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
 
-    <div class="sidebar-header">
-        <a class="brand-mark" href="{{ route('admin.dashboard') }}" aria-label="CRM Dashboard">
-            <span class="brand-icon">
-                <i class="bi bi-grid-1x2-fill"></i>
-            </span>
+@php
+    $user = auth()->user();
 
-            <span class="brand-copy">
-                <span class="brand-title">DANMAQ CRM</span>
-                <span class="brand-subtitle">Admin Panel</span>
-            </span>
-        </a>
-    </div>
+    $isSuperAdmin = $user && $user->hasRole('Super Admin');
 
+    $can = function ($permission) use ($user, $isSuperAdmin) {
+        return $isSuperAdmin || ($user && $user->can($permission));
+    };
+@endphp
 
-    <nav class="sidebar-nav">
+<div class="sidebar-header">
+    <a class="brand-mark"
+       href="{{ route('admin.dashboard') }}"
+       aria-label="CRM Dashboard">
 
-        {{-- ================= DASHBOARD ================= --}}
+        <span class="brand-icon">
+            <i class="bi bi-grid-1x2-fill"></i>
+        </span>
+
+        <span class="brand-copy">
+            <span class="brand-title">DANMAQ CRM</span>
+            <span class="brand-subtitle">Admin Panel</span>
+        </span>
+
+    </a>
+</div>
+
+<nav class="sidebar-nav">
+
+    @if($can('dashboard.view'))
+
         <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
            href="{{ route('admin.dashboard') }}">
 
@@ -25,128 +39,133 @@
             </span>
 
             <span class="nav-text">Dashboard</span>
+
         </a>
 
+    @endif
 
-       {{-- ================= CRM ================= --}}
-@php
-    $crmOpen =
-        request()->routeIs('admin.leads.*') ||
-        request()->routeIs('admin.clients.*') ||
-        request()->routeIs('admin.followups.*') ||
-        request()->routeIs('admin.projects.*');
-@endphp
+    @php
+        $crmOpen =
+            request()->routeIs('admin.leads.*') ||
+            request()->routeIs('admin.clients.*') ||
+            request()->routeIs('admin.followups.*') ||
+            request()->routeIs('admin.projects.*');
 
-<div class="nav-dropdown">
+        $canCRM =
+            $can('leads.view') ||
+            $can('clients.view') ||
+            $can('followups.view') ||
+            $can('projects.view');
+    @endphp
 
-    {{-- CRM Parent --}}
-    <a href="#sidebarCRM"
-       class="nav-link nav-dropdown-toggle {{ $crmOpen ? '' : 'collapsed' }}"
-       data-bs-toggle="collapse"
-       role="button"
-       aria-expanded="{{ $crmOpen ? 'true' : 'false' }}"
-       aria-controls="sidebarCRM">
+    @if($canCRM)
 
-        <span class="nav-icon">
-            <i class="bi bi-briefcase-fill"></i>
-        </span>
+        <div class="nav-dropdown">
 
-        <span class="nav-text">
-            CRM
-        </span>
+            <a href="#sidebarCRM"
+               class="nav-link nav-dropdown-toggle {{ $crmOpen ? '' : 'collapsed' }}"
+               data-bs-toggle="collapse"
+               role="button"
+               aria-expanded="{{ $crmOpen ? 'true' : 'false' }}"
+               aria-controls="sidebarCRM">
 
-        <i class="bi bi-chevron-down dropdown-arrow"></i>
+                <span class="nav-icon">
+                    <i class="bi bi-briefcase-fill"></i>
+                </span>
 
-    </a>
+                <span class="nav-text">CRM</span>
 
+                <i class="bi bi-chevron-down dropdown-arrow"></i>
 
-    {{-- CRM Children --}}
-    <div class="collapse {{ $crmOpen ? 'show' : '' }}"
-         id="sidebarCRM"
-         data-bs-parent=".sidebar-nav">
+            </a>
 
-        <div class="nav-dropdown-menu">
+            <div class="collapse {{ $crmOpen ? 'show' : '' }}"
+                 id="sidebarCRM"
+                 data-bs-parent=".sidebar-nav">
 
-            {{-- ================= LEADS ================= --}}
-            @if(Route::has('admin.leads.index'))
-                <a href="{{ route('admin.leads.index') }}"
-                   class="nav-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
+                <div class="nav-dropdown-menu">
 
-                    <span class="nav-icon">
-                        <i class="bi bi-person-lines-fill"></i>
-                    </span>
+                    @if($can('leads.view'))
 
-                    <span class="nav-text">
-                        Leads
-                    </span>
+                        <a href="{{ route('admin.leads.index') }}"
+                           class="nav-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
 
-                </a>
-            @endif
+                            <span class="nav-icon">
+                                <i class="bi bi-person-lines-fill"></i>
+                            </span>
 
+                            <span class="nav-text">Leads</span>
 
-            {{-- ================= CLIENTS ================= --}}
-            @if(Route::has('admin.clients.index'))
-                <a href="{{ route('admin.clients.index') }}"
-                   class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+                        </a>
 
-                    <span class="nav-icon">
-                        <i class="bi bi-person-vcard"></i>
-                    </span>
+                    @endif
 
-                    <span class="nav-text">
-                        Clients
-                    </span>
+                    @if($can('clients.view'))
 
-                </a>
-            @endif
+                        <a href="{{ route('admin.clients.index') }}"
+                           class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
 
+                            <span class="nav-icon">
+                                <i class="bi bi-person-vcard"></i>
+                            </span>
 
-            {{-- ================= FOLLOW UPS ================= --}}
-            @if(Route::has('admin.followups.index'))
-                <a href="{{ route('admin.followups.index') }}"
-                   class="nav-link {{ request()->routeIs('admin.followups.*') ? 'active' : '' }}">
+                            <span class="nav-text">Clients</span>
 
-                    <span class="nav-icon">
-                        <i class="bi bi-calendar-check"></i>
-                    </span>
+                        </a>
 
-                    <span class="nav-text">
-                        Follow Ups
-                    </span>
+                    @endif
 
-                </a>
-            @endif
+                    @if($can('followups.view'))
 
+                        <a href="{{ route('admin.followups.index') }}"
+                           class="nav-link {{ request()->routeIs('admin.followups.*') ? 'active' : '' }}">
 
-            {{-- ================= PROJECTS ================= --}}
-            @if(Route::has('admin.projects.index'))
-                <a href="{{ route('admin.projects.index') }}"
-                   class="nav-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="bi bi-calendar-check"></i>
+                            </span>
 
-                    <span class="nav-icon">
-                        <i class="bi bi-kanban"></i>
-                    </span>
+                            <span class="nav-text">Follow Ups</span>
 
-                    <span class="nav-text">
-                        Projects
-                    </span>
+                        </a>
 
-                </a>
-            @endif
+                    @endif
+
+                    @if($can('projects.view'))
+
+                        <a href="{{ route('admin.projects.index') }}"
+                           class="nav-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+
+                            <span class="nav-icon">
+                                <i class="bi bi-kanban"></i>
+                            </span>
+
+                            <span class="nav-text">Projects</span>
+
+                        </a>
+
+                    @endif
+
+                </div>
+
+            </div>
 
         </div>
 
-    </div>
+    @endif
 
-</div>
+    @php
+        $userManagementOpen =
+            request()->routeIs('admin.users.*') ||
+            request()->routeIs('admin.roles.*') ||
+            request()->routeIs('admin.permissions.*');
 
-        {{-- ================= USER MANAGEMENT ================= --}}
-        @php
-            $userManagementOpen =
-                request()->routeIs('admin.users.*') ||
-                request()->routeIs('admin.roles.*') ||
-                request()->routeIs('admin.permissions.*');
-        @endphp
+        $canUserManagement =
+            $can('users.view') ||
+            $can('roles.view') ||
+            $can('permissions.view');
+    @endphp
+
+    @if($canUserManagement)
 
         <div class="nav-dropdown">
 
@@ -164,8 +183,8 @@
                 <span class="nav-text">User Management</span>
 
                 <i class="bi bi-chevron-down dropdown-arrow"></i>
-            </a>
 
+            </a>
 
             <div class="collapse {{ $userManagementOpen ? 'show' : '' }}"
                  id="sidebarUserManagement"
@@ -173,7 +192,8 @@
 
                 <div class="nav-dropdown-menu">
 
-                    @if(Route::has('admin.users.index'))
+                    @if($can('users.view'))
+
                         <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
                            href="{{ route('admin.users.index') }}">
 
@@ -182,11 +202,13 @@
                             </span>
 
                             <span class="nav-text">Users</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('roles.view'))
 
-                    @if(Route::has('admin.roles.index'))
                         <a class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}"
                            href="{{ route('admin.roles.index') }}">
 
@@ -195,11 +217,13 @@
                             </span>
 
                             <span class="nav-text">Roles</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('permissions.view'))
 
-                    @if(Route::has('admin.permissions.index'))
                         <a class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}"
                            href="{{ route('admin.permissions.index') }}">
 
@@ -208,21 +232,32 @@
                             </span>
 
                             <span class="nav-text">Permissions</span>
+
                         </a>
+
                     @endif
 
                 </div>
+
             </div>
+
         </div>
 
+    @endif
 
-        {{-- ================= SALES ================= --}}
-        @php
-            $salesOpen =
-                request()->routeIs('admin.quotations.*') ||
-                request()->routeIs('admin.invoices.*') ||
-                request()->routeIs('admin.payments.*');
-        @endphp
+    @php
+        $salesOpen =
+            request()->routeIs('admin.quotations.*') ||
+            request()->routeIs('admin.invoices.*') ||
+            request()->routeIs('admin.payments.*');
+
+        $canSales =
+            $can('quotations.view') ||
+            $can('invoices.view') ||
+            $can('payments.view');
+    @endphp
+
+    @if($canSales)
 
         <div class="nav-dropdown">
 
@@ -240,8 +275,8 @@
                 <span class="nav-text">Sales</span>
 
                 <i class="bi bi-chevron-down dropdown-arrow"></i>
-            </a>
 
+            </a>
 
             <div class="collapse {{ $salesOpen ? 'show' : '' }}"
                  id="sidebarSales"
@@ -249,7 +284,8 @@
 
                 <div class="nav-dropdown-menu">
 
-                    @if(Route::has('admin.quotations.index'))
+                    @if($can('quotations.view'))
+
                         <a class="nav-link {{ request()->routeIs('admin.quotations.*') ? 'active' : '' }}"
                            href="{{ route('admin.quotations.index') }}">
 
@@ -258,11 +294,13 @@
                             </span>
 
                             <span class="nav-text">Quotations</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('invoices.view'))
 
-                    @if(Route::has('admin.invoices.index'))
                         <a class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}"
                            href="{{ route('admin.invoices.index') }}">
 
@@ -271,11 +309,13 @@
                             </span>
 
                             <span class="nav-text">Invoices</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('payments.view'))
 
-                    @if(Route::has('admin.payments.index'))
                         <a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
                            href="{{ route('admin.payments.index') }}">
 
@@ -284,21 +324,32 @@
                             </span>
 
                             <span class="nav-text">Payments</span>
+
                         </a>
+
                     @endif
 
                 </div>
+
             </div>
+
         </div>
 
+    @endif
 
-        {{-- ================= REPORTS ================= --}}
-        @php
-            $reportsOpen =
-                request()->routeIs('admin.reports.leads') ||
-                request()->routeIs('admin.reports.sales') ||
-                request()->routeIs('admin.reports.users');
-        @endphp
+    @php
+        $reportsOpen =
+            request()->routeIs('admin.reports.leads') ||
+            request()->routeIs('admin.reports.sales') ||
+            request()->routeIs('admin.reports.users');
+
+        $canReports =
+            $can('reports.leads') ||
+            $can('reports.sales') ||
+            $can('reports.users');
+    @endphp
+
+    @if($canReports)
 
         <div class="nav-dropdown">
 
@@ -316,8 +367,8 @@
                 <span class="nav-text">Reports</span>
 
                 <i class="bi bi-chevron-down dropdown-arrow"></i>
-            </a>
 
+            </a>
 
             <div class="collapse {{ $reportsOpen ? 'show' : '' }}"
                  id="sidebarReports"
@@ -325,7 +376,8 @@
 
                 <div class="nav-dropdown-menu">
 
-                    @if(Route::has('admin.reports.leads'))
+                    @if($can('reports.leads'))
+
                         <a class="nav-link {{ request()->routeIs('admin.reports.leads') ? 'active' : '' }}"
                            href="{{ route('admin.reports.leads') }}">
 
@@ -334,11 +386,13 @@
                             </span>
 
                             <span class="nav-text">Lead Report</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('reports.sales'))
 
-                    @if(Route::has('admin.reports.sales'))
                         <a class="nav-link {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}"
                            href="{{ route('admin.reports.sales') }}">
 
@@ -347,11 +401,13 @@
                             </span>
 
                             <span class="nav-text">Sales Report</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('reports.users'))
 
-                    @if(Route::has('admin.reports.users'))
                         <a class="nav-link {{ request()->routeIs('admin.reports.users') ? 'active' : '' }}"
                            href="{{ route('admin.reports.users') }}">
 
@@ -360,20 +416,30 @@
                             </span>
 
                             <span class="nav-text">User Report</span>
+
                         </a>
+
                     @endif
 
                 </div>
+
             </div>
+
         </div>
 
+    @endif
 
-        {{-- ================= SETTINGS ================= --}}
-        @php
-            $settingsOpen =
-                request()->routeIs('admin.settings') ||
-                request()->routeIs('admin.profile');
-        @endphp
+    @php
+        $settingsOpen =
+            request()->routeIs('admin.settings.company*') ||
+            request()->routeIs('admin.profile*');
+
+        $canSettings =
+            $can('settings.company') ||
+            $can('profile.view');
+    @endphp
+
+    @if($canSettings)
 
         <div class="nav-dropdown">
 
@@ -391,8 +457,8 @@
                 <span class="nav-text">Settings</span>
 
                 <i class="bi bi-chevron-down dropdown-arrow"></i>
-            </a>
 
+            </a>
 
             <div class="collapse {{ $settingsOpen ? 'show' : '' }}"
                  id="sidebarSettings"
@@ -400,21 +466,24 @@
 
                 <div class="nav-dropdown-menu">
 
-                    @if(Route::has('admin.settings'))
-                        <a class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-                           href="{{ route('admin.settings') }}">
+                    @if($can('settings.company'))
+
+                        <a class="nav-link {{ request()->routeIs('admin.settings.company*') ? 'active' : '' }}"
+                           href="{{ route('admin.settings.company') }}">
 
                             <span class="nav-icon">
                                 <i class="bi bi-building"></i>
                             </span>
 
                             <span class="nav-text">Company Settings</span>
+
                         </a>
+
                     @endif
 
+                    @if($can('profile.view'))
 
-                    @if(Route::has('admin.profile'))
-                        <a class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->routeIs('admin.profile*') ? 'active' : '' }}"
                            href="{{ route('admin.profile') }}">
 
                             <span class="nav-icon">
@@ -422,44 +491,50 @@
                             </span>
 
                             <span class="nav-text">Profile</span>
+
                         </a>
+
                     @endif
 
                 </div>
+
             </div>
+
         </div>
 
+    @endif
 
-        {{-- ================= DIVIDER ================= --}}
-        <div class="nav-divider"></div>
+    <div class="nav-divider"></div>
 
+    <form action="{{ route('logout') }}"
+          method="POST"
+          class="logout-form">
 
-        {{-- ================= LOGOUT ================= --}}
-        <form action="{{ route('logout') }}"
-              method="POST"
-              class="logout-form">
+        @csrf
 
-            @csrf
+        <button type="submit"
+                class="nav-link logout-link">
 
-            <button type="submit" class="nav-link logout-link">
+            <span class="nav-icon">
+                <i class="bi bi-box-arrow-right"></i>
+            </span>
 
-                <span class="nav-icon">
-                    <i class="bi bi-box-arrow-right"></i>
-                </span>
+            <span class="nav-text">Logout</span>
 
-                <span class="nav-text">Logout</span>
+        </button>
 
-            </button>
-        </form>
+    </form>
 
-    </nav>
+</nav>
 
+<div class="sidebar-footer">
 
-    <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span class="sidebar-footer-text">
-            System running smoothly
-        </span>
-    </div>
+    <span class="status-dot"></span>
+
+    <span class="sidebar-footer-text">
+        System running smoothly
+    </span>
+
+</div>
 
 </aside>

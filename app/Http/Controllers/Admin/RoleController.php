@@ -11,8 +11,25 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RoleController extends Controller
 {
+    private function checkPermission(string $permission): void
+    {
+        abort_unless(
+            auth()->user()->hasRole('Super Admin') ||
+            auth()->user()->can($permission),
+            403,
+            'You do not have permission to perform this action.'
+        );
+    }
+
+    private function clearPermissionCache(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
     public function index(Request $request)
     {
+        $this->checkPermission('roles.view');
+
         if ($request->query('view') === 'trash') {
             $roles = Role::onlyTrashed()
                 ->with('permissions')
@@ -34,7 +51,10 @@ class RoleController extends Controller
 
     public function create()
     {
-        $permissions = Permission::where('status', true)
+        $this->checkPermission('roles.create');
+
+        $permissions = Permission::where('guard_name', 'web')
+            ->where('status', true)
             ->orderBy('module', 'ASC')
             ->orderBy('position', 'ASC')
             ->get()
@@ -45,7 +65,9 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $this->checkPermission('roles.create');
+
+        $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
@@ -75,20 +97,32 @@ class RoleController extends Controller
                 'nullable',
                 'array',
             ],
+            'permissions.*' => [
+                'exists:permissions,name',
+            ],
         ]);
 
         $role = Role::create([
-            'name' => $request->name,
+            'name' => $validated['name'],
             'guard_name' => 'web',
-            'name_alias' => $request->name_alias,
-            'icon' => $request->icon,
-            'position' => $request->position ?? 0,
+            'name_alias' => $validated['name_alias'] ?? null,
+            'icon' => $validated['icon'] ?? null,
+            'position' => $validated['position'] ?? 0,
             'status' => $request->boolean('status'),
         ]);
 
-        $role->permissions()->sync($request->permissions ?? []);
+        $permissions = $validated['permissions'] ?? [];
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        if (!empty($permissions)) {
+            $permissions = Permission::where('guard_name', 'web')
+                ->whereIn('name', $permissions)
+                ->pluck('name')
+                ->toArray();
+        }
+
+        $role->syncPermissions($permissions);
+
+        $this->clearPermissionCache();
 
         return redirect()
             ->route('admin.roles.index')
@@ -97,34 +131,48 @@ class RoleController extends Controller
 
     public function edit($id)
     {
+        $this->checkPermission('roles.edit');
+
         $role = Role::with('permissions')->findOrFail($id);
 
         if ($role->trashed()) {
             return redirect()
                 ->route('admin.roles.index', ['view' => 'trash'])
-                ->with('error', 'Deleted role cannot be edited. Please restore it first.');
+                ->with(
+                    'error',
+                    'Deleted role cannot be edited. Please restore it first.'
+                );
         }
 
-        $permissions = Permission::where('status', true)
+        $permissions = Permission::where('guard_name', 'web')
+            ->where('status', true)
             ->orderBy('module', 'ASC')
             ->orderBy('position', 'ASC')
             ->get()
             ->groupBy('module');
 
-        return view('admin.roles.edit', compact('role', 'permissions'));
+        return view('admin.roles.edit', compact(
+            'role',
+            'permissions'
+        ));
     }
 
     public function update(Request $request, $id)
     {
+        $this->checkPermission('roles.edit');
+
         $role = Role::findOrFail($id);
 
         if ($role->name === 'Super Admin') {
             return redirect()
                 ->back()
-                ->with('error', 'Super Admin role cannot be modified.');
+                ->with(
+                    'error',
+                    'Super Admin role cannot be modified.'
+                );
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
@@ -154,19 +202,31 @@ class RoleController extends Controller
                 'nullable',
                 'array',
             ],
+            'permissions.*' => [
+                'exists:permissions,name',
+            ],
         ]);
 
         $role->update([
-            'name' => $request->name,
-            'name_alias' => $request->name_alias,
-            'icon' => $request->icon,
-            'position' => $request->position ?? $role->position,
+            'name' => $validated['name'],
+            'name_alias' => $validated['name_alias'] ?? null,
+            'icon' => $validated['icon'] ?? null,
+            'position' => $validated['position'] ?? $role->position,
             'status' => $request->boolean('status'),
         ]);
 
-        $role->permissions()->sync($request->permissions ?? []);
+        $permissions = $validated['permissions'] ?? [];
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        if (!empty($permissions)) {
+            $permissions = Permission::where('guard_name', 'web')
+                ->whereIn('name', $permissions)
+                ->pluck('name')
+                ->toArray();
+        }
+
+        $role->syncPermissions($permissions);
+
+        $this->clearPermissionCache();
 
         return redirect()
             ->route('admin.roles.index')
@@ -175,24 +235,36 @@ class RoleController extends Controller
 
     public function status($id)
     {
+        $this->checkPermission('roles.status');
+
         $role = Role::findOrFail($id);
 
         if ($role->name === 'Super Admin') {
             return redirect()
                 ->back()
-                ->with('error', 'Super Admin status cannot be changed.');
+                ->with(
+                    'error',
+                    'Super Admin status cannot be changed.'
+                );
         }
 
         $role->status = !$role->status;
         $role->save();
 
+        $this->clearPermissionCache();
+
         return redirect()
             ->back()
-            ->with('success', 'Role status changed successfully.');
+            ->with(
+                'success',
+                'Role status changed successfully.'
+            );
     }
 
     public function position(Request $request, $id)
     {
+        $this->checkPermission('roles.edit');
+
         $role = Role::findOrFail($id);
 
         if ($role->name === 'Super Admin') {
@@ -202,7 +274,7 @@ class RoleController extends Controller
             ], 403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'position' => [
                 'required',
                 'integer',
@@ -211,7 +283,7 @@ class RoleController extends Controller
         ]);
 
         $oldPosition = (int) $role->position;
-        $newPosition = (int) $request->position;
+        $newPosition = (int) $validated['position'];
 
         if ($oldPosition === $newPosition) {
             return response()->json([
@@ -221,12 +293,16 @@ class RoleController extends Controller
             ]);
         }
 
-        $otherRole = Role::whereNull('deleted_at')
-            ->where('id', '!=', $role->id)
-            ->where('position', $newPosition)
-            ->first();
+        DB::transaction(function () use (
+            $role,
+            $oldPosition,
+            $newPosition
+        ) {
+            $otherRole = Role::whereNull('deleted_at')
+                ->where('id', '!=', $role->id)
+                ->where('position', $newPosition)
+                ->first();
 
-        DB::transaction(function () use ($role, $otherRole, $oldPosition, $newPosition) {
             if ($otherRole) {
                 $otherRole->position = $oldPosition;
                 $otherRole->save();
@@ -239,47 +315,79 @@ class RoleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Role position updated successfully.',
-            'position' => $role->position,
+            'position' => $newPosition,
         ]);
     }
 
     public function destroy($id)
     {
+        $this->checkPermission('roles.delete');
+
         $role = Role::findOrFail($id);
 
         if ($role->name === 'Super Admin') {
             return redirect()
                 ->back()
-                ->with('error', 'Super Admin role cannot be deleted.');
+                ->with(
+                    'error',
+                    'Super Admin role cannot be deleted.'
+                );
         }
 
         if ($role->users()->exists()) {
             return redirect()
                 ->back()
-                ->with('error', 'This role is assigned to users. Please reassign users first.');
+                ->with(
+                    'error',
+                    'This role is assigned to users. Please reassign users first.'
+                );
         }
 
         $role->delete();
 
+        $this->clearPermissionCache();
+
         return redirect()
             ->route('admin.roles.index')
-            ->with('success', 'Role deleted successfully.');
+            ->with(
+                'success',
+                'Role moved to trash successfully.'
+            );
     }
 
     public function restore($id)
     {
+        $this->checkPermission('roles.restore');
+
         $role = Role::withTrashed()->findOrFail($id);
 
         if (!$role->trashed()) {
             return redirect()
                 ->route('admin.roles.index')
-                ->with('error', 'This role is already active.');
+                ->with(
+                    'error',
+                    'This role is already active.'
+                );
+        }
+
+        if ($role->name === 'Super Admin') {
+            return redirect()
+                ->route('admin.roles.index', ['view' => 'trash'])
+                ->with(
+                    'error',
+                    'Super Admin role does not need to be restored.'
+                );
         }
 
         $role->restore();
 
+        $this->clearPermissionCache();
+
         return redirect()
             ->route('admin.roles.index', ['view' => 'trash'])
-            ->with('success', 'Role restored successfully.');
+            ->with(
+                'success',
+                'Role restored successfully.'
+            );
     }
 }
