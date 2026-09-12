@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoleController;
@@ -18,557 +17,410 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ProfileController;
 
+Route::get('/', [LoginController::class, 'showLogin'])->name('login');
 
-/*
-|--------------------------------------------------------------------------
-| Login
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/', [LoginController::class, 'showLogin'])
-->name('login');
-
-Route::post('/login', [LoginController::class, 'login'])
-->name('loginDashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| Logout
-|--------------------------------------------------------------------------
-*/
+Route::post('/login', [LoginController::class, 'login'])->name('loginDashboard');
 
 Route::post('/logout', [LoginController::class, 'logout'])
 ->middleware('auth')
 ->name('logout');
-
-
-/*
-|--------------------------------------------------------------------------
-| Admin Routes
-|--------------------------------------------------------------------------
-*/
 
 Route::middleware('auth')
 ->prefix('admin')
 ->name('admin.')
 ->group(function () {
 
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('permission:Dashboard View')
+    ->name('dashboard');
+
+    Route::get('/users', [UserController::class, 'index'])
+    ->middleware('permission:Users View')
+    ->name('users.index');
+
+    Route::get('/users/create', [UserController::class, 'create'])
+    ->middleware('permission:Users Create')
+    ->name('users.create');
+
+    Route::post('/users', [UserController::class, 'store'])
+    ->middleware('permission:Users Create')
+    ->name('users.store');
+
+    Route::get('/users/{id}', [UserController::class, 'show'])
+    ->middleware('permission:Users View')
+    ->name('users.show');
+
+    Route::get('/users/{id}/edit', [UserController::class, 'edit'])
+    ->middleware('permission:Users Edit')
+    ->name('users.edit');
+
+    Route::put('/users/{id}', [UserController::class, 'update'])
+    ->middleware('permission:Users Edit')
+    ->name('users.update');
+
+    Route::patch('/users/{id}', [UserController::class, 'update'])
+    ->middleware('permission:Users Edit')
+    ->name('users.update.patch');
+
+    Route::patch('/users/{id}/status', [UserController::class, 'changeStatus'])
+    ->middleware('permission:Users Edit')
+    ->name('users.status');
+
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])
+    ->middleware('permission:Users Delete')
+    ->name('users.destroy');
+
+    Route::get('/roles', [RoleController::class, 'index'])
+    ->middleware('permission:Roles View')
+    ->name('roles.index');
+
+    Route::get('/roles/create', [RoleController::class, 'create'])
+    ->middleware('permission:Roles Create')
+    ->name('roles.create');
+
+    Route::post('/roles', [RoleController::class, 'store'])
+    ->middleware('permission:Roles Create')
+    ->name('roles.store');
+
+    Route::get('/roles/{id}', [RoleController::class, 'show'])
+    ->middleware('permission:Roles View')
+    ->name('roles.show');
+
+    Route::get('/roles/{id}/edit', [RoleController::class, 'edit'])
+    ->middleware('permission:Roles Edit')
+    ->name('roles.edit');
+
+    Route::put('/roles/{id}', [RoleController::class, 'update'])
+    ->middleware('permission:Roles Edit')
+    ->name('roles.update');
+
+    Route::patch('/roles/{id}', [RoleController::class, 'update'])
+    ->middleware('permission:Roles Edit')
+    ->name('roles.update.patch');
+
+    Route::patch('/roles/{id}/status', [RoleController::class, 'changeStatus'])
+    ->middleware('permission:Roles Edit')
+    ->name('roles.status');
+
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy'])
+    ->middleware('permission:Roles Delete')
+    ->name('roles.destroy');
+
 
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard
-        |--------------------------------------------------------------------------
-        */
+    Route::get('/permissions', [PermissionController::class, 'index'])
+    ->middleware('permission:Roles View')
+    ->name('permissions.index');
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    Route::get('/permissions/create', [PermissionController::class, 'create'])
+    ->middleware('permission:Roles Create')
+    ->name('permissions.create');
 
+    Route::post('/permissions', [PermissionController::class, 'store'])
+    ->middleware('permission:Roles Create')
+    ->name('permissions.store');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Users
-        |--------------------------------------------------------------------------
-        */
+    Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])
+    ->middleware('permission:Roles Edit')
+    ->name('permissions.edit');
 
-        Route::get('/users', [UserController::class, 'index'])
-        ->middleware('permission:users.view')
-        ->name('users.index');
+    Route::put('/permissions/{id}', [PermissionController::class, 'update'])
+    ->middleware('permission:Roles Edit')
+    ->name('permissions.update');
+    Route::patch('/permissions/{id}/status', [PermissionController::class, 'changeStatus'])
+    ->middleware('permission:Roles Edit')
+    ->name('permissions.status');    
+
+    Route::patch('/permissions/{id}', [PermissionController::class, 'update'])
+    ->middleware('permission:Roles Edit')
+    ->name('permissions.update.patch');
+
+    Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])
+    ->middleware('permission:Roles Delete')
+    ->name('permissions.destroy');
+
+    Route::get('/leads', [LeadController::class, 'index'])
+    ->middleware('permission:Leads View')
+    ->name('leads.index');
+
+    Route::get('/leads/create', [LeadController::class, 'create'])
+    ->middleware('permission:Leads Create')
+    ->name('leads.create');
+
+    Route::post('/leads', [LeadController::class, 'store'])
+    ->middleware('permission:Leads Create')
+    ->name('leads.store');
+
+    Route::post('/leads/import', [LeadController::class, 'import'])
+    ->middleware('permission:Leads Create')
+    ->name('leads.import');
+
+    Route::get('/leads/{lead}', [LeadController::class, 'show'])
+    ->middleware('permission:Leads View')
+    ->name('leads.show');
+
+    Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])
+    ->middleware('permission:Leads Edit')
+    ->name('leads.edit');
+
+    Route::put('/leads/{lead}', [LeadController::class, 'update'])
+    ->middleware('permission:Leads Edit')
+    ->name('leads.update');
+
+    Route::patch('/leads/{lead}', [LeadController::class, 'update'])
+    ->middleware('permission:Leads Edit')
+    ->name('leads.update.patch');
+
+    Route::patch('/leads/{lead}/status', [LeadController::class, 'changeStatus'])
+    ->middleware('permission:Leads Edit')
+    ->name('leads.changeStatus');
+
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])
+    ->middleware('permission:Leads Delete')
+    ->name('leads.destroy');
+
+    Route::get('/leads-trash', [LeadController::class, 'trash'])
+    ->middleware('permission:Leads Delete')
+    ->name('leads.trash');
 
-        Route::get('/users/create', [UserController::class, 'create'])
-        ->middleware('permission:users.create')
-        ->name('users.create');
+    Route::patch('/leads/{id}/restore', [LeadController::class, 'restore'])
+    ->middleware('permission:Leads Delete')
+    ->name('leads.restore');
 
-        Route::post('/users', [UserController::class, 'store'])
-        ->middleware('permission:users.create')
-        ->name('users.store');
+    Route::delete('/leads/{id}/force-delete', [LeadController::class, 'forceDelete'])
+    ->middleware('permission:Leads Delete')
+    ->name('leads.forceDelete');
 
-        Route::get('/users/{id}', [UserController::class, 'show'])
-        ->middleware('permission:users.view')
-        ->name('users.show');
+    Route::get('/clients', [ClientController::class, 'index'])
+    ->middleware('permission:Clients View')
+    ->name('clients.index');
 
-        Route::get('/users/{id}/edit', [UserController::class, 'edit'])
-        ->middleware('permission:users.edit')
-        ->name('users.edit');
+    Route::get('/clients/create', [ClientController::class, 'create'])
+    ->middleware('permission:Clients Create')
+    ->name('clients.create');
 
-        Route::put('/users/{id}', [UserController::class, 'update'])
-        ->middleware('permission:users.edit')
-        ->name('users.update');
+    Route::post('/clients', [ClientController::class, 'store'])
+    ->middleware('permission:Clients Create')
+    ->name('clients.store');
 
-        Route::patch('/users/{id}', [UserController::class, 'update'])
-        ->middleware('permission:users.edit')
-        ->name('users.update.patch');
+    Route::post('/clients/import', [ClientController::class, 'import'])
+    ->middleware('permission:Clients Create')
+    ->name('clients.import');
 
-        Route::delete('/users/{id}', [UserController::class, 'destroy'])
-        ->middleware('permission:users.delete')
-        ->name('users.destroy');
+    Route::get('/clients/{client}', [ClientController::class, 'show'])
+    ->middleware('permission:Clients View')
+    ->name('clients.show');
 
-        Route::get('/users/{id}/restore', [UserController::class, 'restore'])
-        ->middleware('permission:users.restore')
-        ->name('users.restore');
+    Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])
+    ->middleware('permission:Clients Edit')
+    ->name('clients.edit');
 
-        Route::delete('/users/{id}/force-delete', [UserController::class, 'forceDelete'])
-        ->middleware('permission:users.force-delete')
-        ->name('users.forceDelete');
+    Route::put('/clients/{client}', [ClientController::class, 'update'])
+    ->middleware('permission:Clients Edit')
+    ->name('clients.update');
 
-        Route::get('/users/{id}/status', [UserController::class, 'status'])
-        ->middleware('permission:users.status')
-        ->name('users.status');
+    Route::patch('/clients/{client}', [ClientController::class, 'update'])
+    ->middleware('permission:Clients Edit')
+    ->name('clients.update.patch');
 
+    Route::patch('/clients/{client}/status', [ClientController::class, 'changeStatus'])
+    ->middleware('permission:Clients Edit')
+    ->name('clients.status');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Roles
-        |--------------------------------------------------------------------------
-        */
+    Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
+    ->middleware('permission:Clients Delete')
+    ->name('clients.destroy');
 
-        Route::get('/roles', [RoleController::class, 'index'])
-        ->middleware('permission:roles.view')
-        ->name('roles.index');
+    Route::get('/clients-trash', [ClientController::class, 'trash'])
+    ->middleware('permission:Clients Delete')
+    ->name('clients.trash');
 
-        Route::get('/roles/create', [RoleController::class, 'create'])
-        ->middleware('permission:roles.create')
-        ->name('roles.create');
+    Route::patch('/clients/{id}/restore', [ClientController::class, 'restore'])
+    ->middleware('permission:Clients Delete')
+    ->name('clients.restore');
 
-        Route::post('/roles', [RoleController::class, 'store'])
-        ->middleware('permission:roles.create')
-        ->name('roles.store');
+    Route::delete('/clients/{id}/force-delete', [ClientController::class, 'forceDelete'])
+    ->middleware('permission:Clients Delete')
+    ->name('clients.forceDelete');
 
-        Route::get('/roles/{id}', [RoleController::class, 'show'])
-        ->middleware('permission:roles.view')
-        ->name('roles.show');
+    Route::get('/followups', [FollowUpController::class, 'index'])
+    ->middleware('permission:Follow Ups View')
+    ->name('followups.index');
 
-        Route::get('/roles/{id}/edit', [RoleController::class, 'edit'])
-        ->middleware('permission:roles.edit')
-        ->name('roles.edit');
+    Route::get('/followups/create', [FollowUpController::class, 'create'])
+    ->middleware('permission:Follow Ups Create')
+    ->name('followups.create');
 
-        Route::put('/roles/{id}', [RoleController::class, 'update'])
-        ->middleware('permission:roles.edit')
-        ->name('roles.update');
+    Route::post('/followups', [FollowUpController::class, 'store'])
+    ->middleware('permission:Follow Ups Create')
+    ->name('followups.store');
 
-        Route::patch('/roles/{id}', [RoleController::class, 'update'])
-        ->middleware('permission:roles.edit')
-        ->name('roles.update.patch');
+    Route::get('/followups/{followup}', [FollowUpController::class, 'show'])
+    ->middleware('permission:Follow Ups View')
+    ->name('followups.show');
 
-        Route::delete('/roles/{id}', [RoleController::class, 'destroy'])
-        ->middleware('permission:roles.delete')
-        ->name('roles.destroy');
+    Route::get('/followups/{followup}/edit', [FollowUpController::class, 'edit'])
+    ->middleware('permission:Follow Ups Edit')
+    ->name('followups.edit');
 
-        Route::get('/roles/{id}/status', [RoleController::class, 'status'])
-        ->middleware('permission:roles.status')
-        ->name('roles.status');
+    Route::put('/followups/{followup}', [FollowUpController::class, 'update'])
+    ->middleware('permission:Follow Ups Edit')
+    ->name('followups.update');
 
-        Route::get('/roles/{id}/restore', [RoleController::class, 'restore'])
-        ->middleware('permission:roles.restore')
-        ->name('roles.restore');
+    Route::patch('/followups/{followup}', [FollowUpController::class, 'update'])
+    ->middleware('permission:Follow Ups Edit')
+    ->name('followups.update.patch');
 
+    Route::patch('/followups/{followup}/status', [FollowUpController::class, 'changeStatus'])
+    ->middleware('permission:Follow Ups Edit')
+    ->name('followups.status');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permissions
-        |--------------------------------------------------------------------------
-        */
+    Route::delete('/followups/{followup}', [FollowUpController::class, 'destroy'])
+    ->middleware('permission:Follow Ups Delete')
+    ->name('followups.destroy');
 
-        Route::get('/permissions', [PermissionController::class, 'index'])
-        ->middleware('permission:permissions.view')
-        ->name('permissions.index');
+    Route::get('/projects', [ProjectController::class, 'index'])
+    ->name('projects.index');
 
-        Route::get('/permissions/create', [PermissionController::class, 'create'])
-        ->middleware('permission:permissions.create')
-        ->name('permissions.create');
+    Route::get('/projects/create', [ProjectController::class, 'create'])
+    ->name('projects.create');
 
-        Route::post('/permissions', [PermissionController::class, 'store'])
-        ->middleware('permission:permissions.create')
-        ->name('permissions.store');
+    Route::post('/projects', [ProjectController::class, 'store'])
+    ->name('projects.store');
 
-        Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])
-        ->middleware('permission:permissions.edit')
-        ->name('permissions.edit');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])
+    ->name('projects.show');
 
-        Route::put('/permissions/{id}', [PermissionController::class, 'update'])
-        ->middleware('permission:permissions.edit')
-        ->name('permissions.update');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
+    ->name('projects.edit');
 
-        Route::patch('/permissions/{id}', [PermissionController::class, 'update'])
-        ->middleware('permission:permissions.edit')
-        ->name('permissions.update.patch');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])
+    ->name('projects.update');
 
-        Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])
-        ->middleware('permission:permissions.delete')
-        ->name('permissions.destroy');
+    Route::patch('/projects/{project}', [ProjectController::class, 'update'])
+    ->name('projects.update.patch');
 
-        Route::get('/permissions/{id}/status', [PermissionController::class, 'status'])
-        ->middleware('permission:permissions.status')
-        ->name('permissions.status');
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
+    ->name('projects.destroy');
 
+    Route::get('/quotations', [QuotationController::class, 'index'])
+    ->middleware('permission:Quotations View')
+    ->name('quotations.index');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Leads
-        |--------------------------------------------------------------------------
-        */
+    Route::get('/quotations/create', [QuotationController::class, 'create'])
+    ->middleware('permission:Quotations Create')
+    ->name('quotations.create');
 
-        Route::get('/leads', [LeadController::class, 'index'])
-        ->middleware('permission:leads.view')
-        ->name('leads.index');
+    Route::post('/quotations', [QuotationController::class, 'store'])
+    ->middleware('permission:Quotations Create')
+    ->name('quotations.store');
 
-        Route::get('/leads/create', [LeadController::class, 'create'])
-        ->middleware('permission:leads.create')
-        ->name('leads.create');
+    Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])
+    ->middleware('permission:Quotations View')
+    ->name('quotations.show');
 
-        Route::post('/leads', [LeadController::class, 'store'])
-        ->middleware('permission:leads.create')
-        ->name('leads.store');
+    Route::get('/quotations/{quotation}/edit', [QuotationController::class, 'edit'])
+    ->middleware('permission:Quotations Edit')
+    ->name('quotations.edit');
 
-        Route::get('/leads/{lead}', [LeadController::class, 'show'])
-        ->middleware('permission:leads.view')
-        ->name('leads.show');
+    Route::put('/quotations/{quotation}', [QuotationController::class, 'update'])
+    ->middleware('permission:Quotations Edit')
+    ->name('quotations.update');
 
-        Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])
-        ->middleware('permission:leads.edit')
-        ->name('leads.edit');
+    Route::patch('/quotations/{quotation}', [QuotationController::class, 'update'])
+    ->middleware('permission:Quotations Edit')
+    ->name('quotations.update.patch');
 
-        Route::put('/leads/{lead}', [LeadController::class, 'update'])
-        ->middleware('permission:leads.edit')
-        ->name('leads.update');
+    Route::delete('/quotations/{quotation}', [QuotationController::class, 'destroy'])
+    ->middleware('permission:Quotations Delete')
+    ->name('quotations.destroy');
 
-        Route::patch('/leads/{lead}', [LeadController::class, 'update'])
-        ->middleware('permission:leads.edit')
-        ->name('leads.update.patch');
+    Route::get('/invoices', [InvoiceController::class, 'index'])
+    ->middleware('permission:Invoices View')
+    ->name('invoices.index');
 
-        Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])
-        ->middleware('permission:leads.delete')
-        ->name('leads.destroy');
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])
+    ->middleware('permission:Invoices Create')
+    ->name('invoices.create');
 
-        Route::post('/leads/{lead}/status', [LeadController::class, 'changeStatus'])
-        ->middleware('permission:leads.status')
-        ->name('leads.changeStatus');
+    Route::post('/invoices', [InvoiceController::class, 'store'])
+    ->middleware('permission:Invoices Create')
+    ->name('invoices.store');
 
-        Route::get('/leads-trash', [LeadController::class, 'trash'])
-        ->middleware('permission:leads.view')
-        ->name('leads.trash');
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])
+    ->middleware('permission:Invoices View')
+    ->name('invoices.show');
 
-        Route::post('/leads/{id}/restore', [LeadController::class, 'restore'])
-        ->middleware('permission:leads.restore')
-        ->name('leads.restore');
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])
+    ->middleware('permission:Invoices Edit')
+    ->name('invoices.edit');
 
-        Route::delete('/leads/{id}/force-delete', [LeadController::class, 'forceDelete'])
-        ->middleware('permission:leads.force-delete')
-        ->name('leads.forceDelete');
+    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])
+    ->middleware('permission:Invoices Edit')
+    ->name('invoices.update');
 
-        Route::post('/leads/import', [LeadController::class, 'import'])
-        ->middleware('permission:leads.import')
-        ->name('leads.import');
+    Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])
+    ->middleware('permission:Invoices Edit')
+    ->name('invoices.update.patch');
 
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])
+    ->middleware('permission:Invoices Delete')
+    ->name('invoices.destroy');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Clients
-        |--------------------------------------------------------------------------
-        */
+    Route::get('/payments', [PaymentController::class, 'index'])
+    ->middleware('permission:Payments View')
+    ->name('payments.index');
 
-        Route::get('/clients', [ClientController::class, 'index'])
-        ->middleware('permission:clients.view')
-        ->name('clients.index');
+    Route::get('/payments/create', [PaymentController::class, 'create'])
+    ->middleware('permission:Payments Create')
+    ->name('payments.create');
 
-        Route::get('/clients/create', [ClientController::class, 'create'])
-        ->middleware('permission:clients.create')
-        ->name('clients.create');
+    Route::post('/payments', [PaymentController::class, 'store'])
+    ->middleware('permission:Payments Create')
+    ->name('payments.store');
 
-        Route::post('/clients', [ClientController::class, 'store'])
-        ->middleware('permission:clients.create')
-        ->name('clients.store');
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])
+    ->middleware('permission:Payments View')
+    ->name('payments.show');
 
-        Route::get('/clients/{client}', [ClientController::class, 'show'])
-        ->middleware('permission:clients.view')
-        ->name('clients.show');
+    Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])
+    ->middleware('permission:Payments Edit')
+    ->name('payments.edit');
 
-        Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])
-        ->middleware('permission:clients.edit')
-        ->name('clients.edit');
+    Route::put('/payments/{payment}', [PaymentController::class, 'update'])
+    ->middleware('permission:Payments Edit')
+    ->name('payments.update');
 
-        Route::put('/clients/{client}', [ClientController::class, 'update'])
-        ->middleware('permission:clients.edit')
-        ->name('clients.update');
+    Route::patch('/payments/{payment}', [PaymentController::class, 'update'])
+    ->middleware('permission:Payments Edit')
+    ->name('payments.update.patch');
 
-        Route::patch('/clients/{client}', [ClientController::class, 'update'])
-        ->middleware('permission:clients.edit')
-        ->name('clients.update.patch');
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])
+    ->middleware('permission:Payments Delete')
+    ->name('payments.destroy');
 
-        Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
-        ->middleware('permission:clients.delete')
-        ->name('clients.destroy');
+    Route::get('/reports/leads', [ReportController::class, 'leadReport'])
+    ->middleware('permission:Reports View')
+    ->name('reports.leads');
 
-        Route::post('/clients/import', [ClientController::class, 'import'])
-        ->middleware('permission:clients.import')
-        ->name('clients.import');
+    Route::get('/reports/sales', [ReportController::class, 'salesReport'])
+    ->middleware('permission:Reports View')
+    ->name('reports.sales');
 
-        Route::get('/clients-trash', [ClientController::class, 'trash'])
-        ->middleware('permission:clients.view')
-        ->name('clients.trash');
+    Route::get('/reports/users', [ReportController::class, 'userReport'])
+    ->middleware('permission:Reports View')
+    ->name('reports.users');
 
-        Route::post('/clients/{id}/restore', [ClientController::class, 'restore'])
-        ->middleware('permission:clients.restore')
-        ->name('clients.restore');
+    Route::get('/settings/company', [SettingController::class, 'company'])
+    ->middleware('permission:Settings View')
+    ->name('settings.company');
 
-        Route::delete('/clients/{id}/force-delete', [ClientController::class, 'forceDelete'])
-        ->middleware('permission:clients.force-delete')
-        ->name('clients.forceDelete');
+    Route::post('/settings/company', [SettingController::class, 'updateCompany'])
+    ->middleware('permission:Settings Edit')
+    ->name('settings.company.update');
 
-        Route::patch('/clients/{id}/status', [ClientController::class, 'changeStatus'])
-        ->middleware('permission:clients.status')
-        ->name('clients.changeStatus');
+    Route::get('/profile', [ProfileController::class, 'index'])
+    ->name('profile');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Follow Ups
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/followups', [FollowUpController::class, 'index'])
-        ->middleware('permission:followups.view')
-        ->name('followups.index');
-
-        Route::get('/followups/create', [FollowUpController::class, 'create'])
-        ->middleware('permission:followups.create')
-        ->name('followups.create');
-
-        Route::post('/followups', [FollowUpController::class, 'store'])
-        ->middleware('permission:followups.create')
-        ->name('followups.store');
-
-        Route::get('/followups/{followup}', [FollowUpController::class, 'show'])
-        ->middleware('permission:followups.view')
-        ->name('followups.show');
-
-        Route::get('/followups/{followup}/edit', [FollowUpController::class, 'edit'])
-        ->middleware('permission:followups.edit')
-        ->name('followups.edit');
-
-        Route::put('/followups/{followup}', [FollowUpController::class, 'update'])
-        ->middleware('permission:followups.edit')
-        ->name('followups.update');
-
-        Route::patch('/followups/{followup}', [FollowUpController::class, 'update'])
-        ->middleware('permission:followups.edit')
-        ->name('followups.update.patch');
-
-        Route::delete('/followups/{followup}', [FollowUpController::class, 'destroy'])
-        ->middleware('permission:followups.delete')
-        ->name('followups.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Projects
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/projects', [ProjectController::class, 'index'])
-        ->middleware('permission:projects.view')
-        ->name('projects.index');
-
-        Route::get('/projects/create', [ProjectController::class, 'create'])
-        ->middleware('permission:projects.create')
-        ->name('projects.create');
-
-        Route::post('/projects', [ProjectController::class, 'store'])
-        ->middleware('permission:projects.create')
-        ->name('projects.store');
-
-        Route::get('/projects/{project}', [ProjectController::class, 'show'])
-        ->middleware('permission:projects.view')
-        ->name('projects.show');
-
-        Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
-        ->middleware('permission:projects.edit')
-        ->name('projects.edit');
-
-        Route::put('/projects/{project}', [ProjectController::class, 'update'])
-        ->middleware('permission:projects.edit')
-        ->name('projects.update');
-
-        Route::patch('/projects/{project}', [ProjectController::class, 'update'])
-        ->middleware('permission:projects.edit')
-        ->name('projects.update.patch');
-
-        Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
-        ->middleware('permission:projects.delete')
-        ->name('projects.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Quotations
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/quotations', [QuotationController::class, 'index'])
-        ->middleware('permission:quotations.view')
-        ->name('quotations.index');
-
-        Route::get('/quotations/create', [QuotationController::class, 'create'])
-        ->middleware('permission:quotations.create')
-        ->name('quotations.create');
-
-        Route::post('/quotations', [QuotationController::class, 'store'])
-        ->middleware('permission:quotations.create')
-        ->name('quotations.store');
-
-        Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])
-        ->middleware('permission:quotations.view')
-        ->name('quotations.show');
-
-        Route::get('/quotations/{quotation}/edit', [QuotationController::class, 'edit'])
-        ->middleware('permission:quotations.edit')
-        ->name('quotations.edit');
-
-        Route::put('/quotations/{quotation}', [QuotationController::class, 'update'])
-        ->middleware('permission:quotations.edit')
-        ->name('quotations.update');
-
-        Route::patch('/quotations/{quotation}', [QuotationController::class, 'update'])
-        ->middleware('permission:quotations.edit')
-        ->name('quotations.update.patch');
-
-        Route::delete('/quotations/{quotation}', [QuotationController::class, 'destroy'])
-        ->middleware('permission:quotations.delete')
-        ->name('quotations.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Invoices
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/invoices', [InvoiceController::class, 'index'])
-        ->middleware('permission:invoices.view')
-        ->name('invoices.index');
-
-        Route::get('/invoices/create', [InvoiceController::class, 'create'])
-        ->middleware('permission:invoices.create')
-        ->name('invoices.create');
-
-        Route::post('/invoices', [InvoiceController::class, 'store'])
-        ->middleware('permission:invoices.create')
-        ->name('invoices.store');
-
-        Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])
-        ->middleware('permission:invoices.view')
-        ->name('invoices.show');
-
-        Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])
-        ->middleware('permission:invoices.edit')
-        ->name('invoices.edit');
-
-        Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])
-        ->middleware('permission:invoices.edit')
-        ->name('invoices.update');
-
-        Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])
-        ->middleware('permission:invoices.edit')
-        ->name('invoices.update.patch');
-
-        Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])
-        ->middleware('permission:invoices.delete')
-        ->name('invoices.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Payments
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/payments', [PaymentController::class, 'index'])
-        ->middleware('permission:payments.view')
-        ->name('payments.index');
-
-        Route::get('/payments/create', [PaymentController::class, 'create'])
-        ->middleware('permission:payments.create')
-        ->name('payments.create');
-
-        Route::post('/payments', [PaymentController::class, 'store'])
-        ->middleware('permission:payments.create')
-        ->name('payments.store');
-
-        Route::get('/payments/{payment}', [PaymentController::class, 'show'])
-        ->middleware('permission:payments.view')
-        ->name('payments.show');
-
-        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])
-        ->middleware('permission:payments.edit')
-        ->name('payments.edit');
-
-        Route::put('/payments/{payment}', [PaymentController::class, 'update'])
-        ->middleware('permission:payments.edit')
-        ->name('payments.update');
-
-        Route::patch('/payments/{payment}', [PaymentController::class, 'update'])
-        ->middleware('permission:payments.edit')
-        ->name('payments.update.patch');
-
-        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])
-        ->middleware('permission:payments.delete')
-        ->name('payments.destroy');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Reports
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/reports/leads', [ReportController::class, 'leadReport'])
-        ->middleware('permission:reports.leads')
-        ->name('reports.leads');
-
-        Route::get('/reports/sales', [ReportController::class, 'salesReport'])
-        ->middleware('permission:reports.sales')
-        ->name('reports.sales');
-
-        Route::get('/reports/users', [ReportController::class, 'userReport'])
-        ->middleware('permission:reports.users')
-        ->name('reports.users');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Company Settings
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/settings/company', [SettingController::class, 'company'])
-        ->middleware('permission:settings.company')
-        ->name('settings.company');
-
-        Route::post('/settings/company', [SettingController::class, 'updateCompany'])
-        ->middleware('permission:settings.company.update')
-        ->name('settings.company.update');
-
-
-        /*
-|--------------------------------------------------------------------------
-| Profile
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/profile', [
-    ProfileController::class,
-    'index'
-])
-->middleware('permission:profile.view')
-->name('profile');
-
-Route::post('/profile', [
-    ProfileController::class,
-    'update'
-])
-->middleware('permission:profile.edit')
-->name('profile.update');
-
-
-
+    Route::post('/profile', [ProfileController::class, 'update'])
+    ->name('profile.update');
 });
