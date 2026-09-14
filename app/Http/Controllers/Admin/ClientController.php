@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\User;
 use App\Exports\ClientsExport;
 use App\Exports\ClientsSampleExport;
 use App\Imports\ClientsImport;
@@ -13,33 +14,130 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
+    private function checkPermission(string $permission): void
+    {
+        $user = auth()->user();
+
+        abort_unless(
+            $user &&
+            (
+                $user->hasRole('Super Admin') ||
+                $user->can($permission)
+            ),
+            403,
+            'You do not have permission to perform this action.'
+        );
+    }
+
+    private function checkClientOwnership(Client $client): void
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            abort(403);
+        }
+
+        if ($user->hasRole('Super Admin')) {
+            return;
+        }
+
+        abort_unless(
+            (int) $client->created_by === (int) $user->id,
+            403,
+            'You are not allowed to access this client.'
+        );
+    }
+
     public function index(Request $request)
     {
-        $query = Client::with('user');
+        $this->checkPermission('Clients View');
+
+        $user = auth()->user();
+
+        $query = Client::with([
+            'user',
+            'createdBy',
+            'updatedBy'
+        ]);
+
+        if (!$user->hasRole('Super Admin')) {
+            $query->where(
+                'created_by',
+                $user->id
+            );
+        }
+
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
+
             $query->where(function ($q) use ($search) {
-                $q->where('company_name', 'like', '%' . $search . '%')
-                    ->orWhere('contact_person', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('mobile', 'like', '%' . $search . '%')
-                    ->orWhere('alternate_mobile', 'like', '%' . $search . '%')
-                    ->orWhere('city', 'like', '%' . $search . '%')
-                    ->orWhere('state', 'like', '%' . $search . '%')
-                    ->orWhere('gst_number', 'like', '%' . $search . '%')
-                    ->orWhere('pan_number', 'like', '%' . $search . '%');
+                $q->where('company_name', 'like', "%{$search}%")
+                ->orWhere('contact_person', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('mobile', 'like', "%{$search}%")
+                ->orWhere('alternate_mobile', 'like', "%{$search}%")
+                ->orWhere('city', 'like', "%{$search}%")
+                ->orWhere('state', 'like', "%{$search}%")
+                ->orWhere('gst_number', 'like', "%{$search}%")
+                ->orWhere('pan_number', 'like', "%{$search}%")
+                ->orWhereHas('createdBy', function ($userQuery) use ($search) {
+                    $userQuery->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereRaw(
+                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                        ["%{$search}%"]
+                    );
+                });
             });
         }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+
+        if (
+            $user->hasRole('Super Admin') &&
+            $request->filled('created_by')
+        ) {
+            $query->where(
+                'created_by',
+                $request->created_by
+            );
         }
-        $perPage = (int) $request->get('per_page', 15);
-        $allowedPerPage = [10,15,25,50,100,200,500];
-        if (!in_array($perPage, $allowedPerPage)) {
+
+        if ($request->filled('status')) {
+            $query->where(
+                'status',
+                $request->status
+            );
+        }
+
+        $perPage = (int) $request->get(
+            'per_page',
+            15
+        );
+
+        $allowedPerPage = [
+            10,
+            15,
+            25,
+            50,
+            100,
+            200,
+            500
+        ];
+
+        if (!in_array($perPage, $allowedPerPage, true)) {
             $perPage = 15;
         }
-        $sort = $request->get('sort', 'created_at');
-        $direction = $request->get('direction', 'desc');
+
+        $sort = $request->get(
+            'sort',
+            'created_at'
+        );
+
+        $direction = $request->get(
+            'direction',
+            'desc'
+        );
+
         $allowedSorts = [
             'company_name',
             'contact_person',
@@ -51,52 +149,94 @@ class ClientController extends Controller
             'created_at',
             'updated_at'
         ];
-        if (!in_array($sort, $allowedSorts)) {
+
+        if (!in_array($sort, $allowedSorts, true)) {
             $sort = 'created_at';
         }
-        if (!in_array($direction, ['asc', 'desc'])) {
+
+        if (!in_array($direction, ['asc', 'desc'], true)) {
             $direction = 'desc';
         }
+
         $clients = $query
-            ->orderBy($sort, $direction)
-            ->paginate($perPage)
-            ->withQueryString();
+        ->orderBy($sort, $direction)
+        ->paginate($perPage)
+        ->withQueryString();
+
         $statuses = [
             'active',
             'inactive'
         ];
-        return view('admin.clients.index', compact('clients', 'statuses'));
+
+        $users = User::where('status', 1)
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get();
+
+        return view(
+            'admin.clients.index',
+            compact(
+                'clients',
+                'statuses',
+                'users',
+                'perPage'
+            )
+        );
     }
 
     public function export()
     {
-        return Excel::download(new ClientsExport, 'clients.xlsx');
+        $this->checkPermission('Clients View');
+
+        return Excel::download(
+            new ClientsExport,
+            'clients.xlsx'
+        );
     }
 
     public function import(Request $request)
     {
+        $this->checkPermission('Clients Create');
+
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
-        Excel::import(new ClientsImport, $request->file('file'));
+
+        Excel::import(
+            new ClientsImport,
+            $request->file('file')
+        );
+
         return redirect()
-            ->route('admin.clients.index')
-            ->with('success', 'Clients imported successfully.');
+        ->route('admin.clients.index')
+        ->with(
+            'success',
+            'Clients imported successfully.'
+        );
     }
 
     public function sample()
     {
-        return Excel::download(new ClientsSampleExport, 'clients-sample.xlsx');
+        $this->checkPermission('Clients Create');
+
+        return Excel::download(
+            new ClientsSampleExport,
+            'clients-sample.xlsx'
+        );
     }
 
     public function create()
     {
+        $this->checkPermission('Clients Create');
+
         return view('admin.clients.create');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $this->checkPermission('Clients Create');
+
+        $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'contact_person' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -114,57 +254,83 @@ class ClientController extends Controller
             'notes' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
-        Client::create([
-            'company_name' => $request->company_name,
-            'contact_person' => $request->contact_person,
-            'email' => $request->email,
-            'mobile' => $request->mobile,
-            'alternate_mobile' => $request->alternate_mobile,
-            'address1' => $request->address1,
-            'address2' => $request->address2,
-            'city' => $request->city,
-            'state' => $request->state,
-            'country' => $request->country,
-            'pincode' => $request->pincode,
-            'website' => $request->website,
-            'gst_number' => $request->gst_number,
-            'pan_number' => $request->pan_number,
-            'notes' => $request->notes,
-            'status' => $request->status,
-            'created_by' => Auth::id(),
-        ]);
+
+        $validated['created_by'] = Auth::id();
+
+        Client::create($validated);
+
         return redirect()
-            ->route('admin.clients.index')
-            ->with('success', 'Client created successfully.');
+        ->route('admin.clients.index')
+        ->with(
+            'success',
+            'Client created successfully.'
+        );
     }
 
     public function show(Client $client)
     {
-        return view('admin.clients.show', compact('client'));
+        $this->checkPermission('Clients View');
+
+        $this->checkClientOwnership($client);
+
+        $client->load([
+            'user',
+            'createdBy',
+            'updatedBy'
+        ]);
+
+        return view(
+            'admin.clients.show',
+            compact('client')
+        );
     }
 
-    public function changeStatus(Request $request, $id)
-    {
-        $request->validate([
+    public function changeStatus(
+        Request $request,
+        Client $client
+    ) {
+        $this->checkPermission('Clients Edit');
+
+        $this->checkClientOwnership($client);
+
+        $validated = $request->validate([
             'status' => 'required|in:active,inactive',
         ]);
-        $client = Client::findOrFail($id);
-        $client->status = $request->status;
-        $client->updated_by = Auth::id();
-        $client->save();
+
+        $client->update([
+            'status' => $validated['status'],
+            'updated_by' => Auth::id(),
+        ]);
+
         return redirect()
-            ->back()
-            ->with('success', 'Client status updated successfully.');
+        ->back()
+        ->with(
+            'success',
+            'Client status updated successfully.'
+        );
     }
 
     public function edit(Client $client)
     {
-        return view('admin.clients.edit', compact('client'));
+        $this->checkPermission('Clients Edit');
+
+        $this->checkClientOwnership($client);
+
+        return view(
+            'admin.clients.edit',
+            compact('client')
+        );
     }
 
-    public function update(Request $request, Client $client)
-    {
-        $request->validate([
+    public function update(
+        Request $request,
+        Client $client
+    ) {
+        $this->checkPermission('Clients Edit');
+
+        $this->checkClientOwnership($client);
+
+        $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'contact_person' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -182,82 +348,164 @@ class ClientController extends Controller
             'notes' => 'nullable|string',
             'status' => 'required|in:active,inactive',
         ]);
-        $client->update([
-            'company_name' => $request->company_name,
-            'contact_person' => $request->contact_person,
-            'email' => $request->email,
-            'mobile' => $request->mobile,
-            'alternate_mobile' => $request->alternate_mobile,
-            'address1' => $request->address1,
-            'address2' => $request->address2,
-            'city' => $request->city,
-            'state' => $request->state,
-            'country' => $request->country,
-            'pincode' => $request->pincode,
-            'website' => $request->website,
-            'gst_number' => $request->gst_number,
-            'pan_number' => $request->pan_number,
-            'notes' => $request->notes,
-            'status' => $request->status,
-            'updated_by' => Auth::id(),
-        ]);
+
+        $validated['updated_by'] = Auth::id();
+
+        $client->update($validated);
+
         return redirect()
-            ->route('admin.clients.index')
-            ->with('success', 'Client updated successfully.');
+        ->route('admin.clients.index')
+        ->with(
+            'success',
+            'Client updated successfully.'
+        );
     }
 
     public function destroy(Client $client)
     {
+        $this->checkPermission('Clients Delete');
+
+        $this->checkClientOwnership($client);
+
         $client->delete();
+
         return redirect()
-            ->route('admin.clients.index')
-            ->with('success', 'Client deleted successfully.');
+        ->route('admin.clients.index')
+        ->with(
+            'success',
+            'Client moved to trash successfully.'
+        );
     }
 
     public function trash(Request $request)
     {
-        $query = Client::onlyTrashed()->with('user');
+        $this->checkPermission('Clients Delete');
+
+        $user = auth()->user();
+
+        $query = Client::onlyTrashed()
+        ->with([
+            'user',
+            'createdBy',
+            'updatedBy'
+        ]);
+
+        if (!$user->hasRole('Super Admin')) {
+            $query->where(
+                'created_by',
+                $user->id
+            );
+        }
+
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
+
             $query->where(function ($q) use ($search) {
-                $q->where('company_name', 'like', '%' . $search . '%')
-                    ->orWhere('contact_person', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('mobile', 'like', '%' . $search . '%')
-                    ->orWhere('alternate_mobile', 'like', '%' . $search . '%')
-                    ->orWhere('city', 'like', '%' . $search . '%')
-                    ->orWhere('state', 'like', '%' . $search . '%')
-                    ->orWhere('gst_number', 'like', '%' . $search . '%')
-                    ->orWhere('pan_number', 'like', '%' . $search . '%');
+                $q->where('company_name', 'like', "%{$search}%")
+                ->orWhere('contact_person', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('mobile', 'like', "%{$search}%")
+                ->orWhere('alternate_mobile', 'like', "%{$search}%")
+                ->orWhere('city', 'like', "%{$search}%")
+                ->orWhere('state', 'like', "%{$search}%")
+                ->orWhere('gst_number', 'like', "%{$search}%")
+                ->orWhere('pan_number', 'like', "%{$search}%")
+                ->orWhereHas('createdBy', function ($userQuery) use ($search) {
+                    $userQuery->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereRaw(
+                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                        ["%{$search}%"]
+                    );
+                });
             });
         }
-        $perPage = (int) $request->get('per_page', 15);
-        $allowedPerPage = [10,15,25,50,100,200,500];
-        if (!in_array($perPage, $allowedPerPage)) {
+
+        if (
+            $user->hasRole('Super Admin') &&
+            $request->filled('created_by')
+        ) {
+            $query->where(
+                'created_by',
+                $request->created_by
+            );
+        }
+
+        $perPage = (int) $request->get(
+            'per_page',
+            15
+        );
+
+        $allowedPerPage = [
+            10,
+            15,
+            25,
+            50,
+            100,
+            200,
+            500
+        ];
+
+        if (!in_array($perPage, $allowedPerPage, true)) {
             $perPage = 15;
         }
+
         $clients = $query
-            ->latest('deleted_at')
-            ->paginate($perPage)
-            ->withQueryString();
-        return view('admin.clients.trash', compact('clients'));
+        ->latest('deleted_at')
+        ->paginate($perPage)
+        ->withQueryString();
+
+        $users = User::where('status', 1)
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get();
+
+        return view(
+            'admin.clients.trash',
+            compact(
+                'clients',
+                'users',
+                'perPage'
+            )
+        );
     }
 
     public function restore($id)
     {
-        $client = Client::onlyTrashed()->findOrFail($id);
+        $this->checkPermission('Clients Delete');
+
+        $client = Client::onlyTrashed()
+        ->findOrFail($id);
+
+        $this->checkClientOwnership($client);
+
         $client->restore();
+
         return redirect()
-            ->route('admin.clients.trash')
-            ->with('success', 'Client restored successfully.');
+        ->route('admin.clients.trash')
+        ->with(
+            'success',
+            'Client restored successfully.'
+        );
     }
 
     public function forceDelete($id)
     {
-        $client = Client::onlyTrashed()->findOrFail($id);
+        $this->checkPermission('Clients Delete');
+
+        $client = Client::onlyTrashed()
+        ->findOrFail($id);
+
+        $this->checkClientOwnership($client);
+
         $client->forceDelete();
+
         return redirect()
-            ->route('admin.clients.trash')
-            ->with('success', 'Client permanently deleted successfully.');
+        ->route('admin.clients.trash')
+        ->with(
+            'success',
+            'Client permanently deleted successfully.'
+        );
     }
 }

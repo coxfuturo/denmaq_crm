@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->foreignId('user_id')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
+
             $table->string('company_name');
             $table->string('contact_person');
             $table->string('email')->nullable();
@@ -26,11 +31,28 @@ return new class extends Migration
             $table->string('gst_number')->nullable();
             $table->string('pan_number')->nullable();
             $table->text('notes')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->enum(
+                'status',
+                ['active', 'inactive']
+            )->default('active');
+
+            $table->foreignId('created_by')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
+
+            $table->foreignId('updated_by')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
+
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('created_by');
+            $table->index('updated_by');
+            $table->index('status');
         });
     }
 
