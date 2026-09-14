@@ -16,101 +16,77 @@ $can = function ($permission) use ($user, $isSuperAdmin) {
 @endphp
 
 <div class="container-fluid">
-<div class="d-flex justify-content-between align-items-center mb-2 mt-2">
-        <h5 class="mb-0">Roles List</h5>
-        <small class="text-muted">Manage roles and permissions</small>
-    </div>
 
-    @if($can('Roles Create'))
+        <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+        <div>
+            <h5 class="mb-0">Roles List</h5>
+            <small class="text-muted">Manage roles and permissions</small>
+        </div>
 
+        @if($can('Roles Create'))
         <a href="{{ route('admin.roles.create') }}" class="btn btn-primary btn-sm">
             <span class="me-1">+</span>
             Add Role
         </a>
-
-    @endif
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-            Roles
-            <span class="text-muted">({{ $roles->count() }})</span>
-        </h6>
-
-        @if(request('view') == 'trash')
-
-            @if($can('Roles View'))
-
-                <a href="{{ route('admin.roles.index') }}" class="btn btn-success btn-sm">
-                    <span class="me-1">←</span>
-                    Active
-                </a>
-
-            @endif
-
-        @else
-
-            @if($can('Roles Delete'))
-
-                <a href="{{ route('admin.roles.index', ['view' => 'trash']) }}" class="btn btn-secondary btn-sm">
-                    <span class="me-1">🗑</span>
-                    Trash
-                </a>
-
-            @endif
-
         @endif
-
     </div>
 
-    <div class="card-body p-2">
+    <div class="card shadow-sm">
 
-        <div class="table-responsive">
+        <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
 
-            <table class="table table-bordered table-hover table-sm align-middle mb-0 compact-table">
+            <h6 class="mb-0">
+                Roles
+                <span class="text-muted">({{ $roles->count() }})</span>
+            </h6>
 
-                <thead class="table-light">
+            @if(request('view') == 'trash')
 
-                    <tr>
+            @if($can('Roles View'))
+            <a href="{{ route('admin.roles.index') }}" class="btn btn-success btn-sm">
+                <span class="me-1">←</span>
+                Active
+            </a>
+            @endif
 
-                        <th width="20">S.n</th>
+            @else
 
-                        <th>Role</th>
+            @if($can('Roles Delete'))
+            <a href="{{ route('admin.roles.index', ['view' => 'trash']) }}" class="btn btn-secondary btn-sm">
+                <span class="me-1">🗑</span>
+                Trash
+            </a>
+            @endif
 
-                        <th>Description</th>
+            @endif
 
-                        <th width="100" class="text-center">
-                            Position
-                        </th>
+        </div>
 
-                        <th width="85" class="text-center">
-                            Status
-                        </th>
+        <div class="card-body p-2">
 
-                        <th width="110" class="text-center">
-                            Permissions
-                        </th>
+            <div class="table-responsive">
 
-                        <th width="120">
-                            Created By
-                        </th>
+                <table class="table table-bordered table-hover table-sm align-middle mb-0 compact-table">
 
-                        <th width="120">
-                            Created At
-                        </th>
+                    <thead class="table-light">
 
-                        <th width="100" class="text-center">
-                            Action
-                        </th>
+                        <tr>
+                            <th width="20">S.n</th>
+                            <th>Role</th>
+                            <th>Description</th>
+                            <th width="100" class="text-center">Position</th>
+                            <th width="85" class="text-center">Status</th>
+                            <th width="110" class="text-center">Permissions</th>
+                            <th width="120">Created By</th>
+                            <th width="120">Created At</th>
+                            <th width="100" class="text-center">Action</th>
+                        </tr>
 
-                    </tr>
+                    </thead>
 
-                </thead>
+                    <tbody>
 
-                <tbody>
-
-                    @forelse($roles as $role)
+                        @forelse($roles as $role)
 
                         <tr>
 
@@ -123,21 +99,17 @@ $can = function ($permission) use ($user, $isSuperAdmin) {
                                 <div class="d-flex align-items-center">
 
                                     <div>
-
                                         <strong class="role-name">
                                             {{ $role->name }}
                                         </strong>
 
                                         @if($role->name_alias)
-
-                                            <div>
-                                                <small class="text-muted">
-                                                    {{ $role->name_alias }}
-                                                </small>
-                                            </div>
-
+                                        <div>
+                                            <small class="text-muted">
+                                                {{ $role->name_alias }}
+                                            </small>
+                                        </div>
                                         @endif
-
                                     </div>
 
                                 </div>
@@ -147,379 +119,362 @@ $can = function ($permission) use ($user, $isSuperAdmin) {
                             <td>
 
                                 <span
-                                    class="description-text"
-                                    title="{{ $role->description }}"
+                                class="description-text"
+                                title="{{ $role->description }}"
                                 >
-                                    {{ $role->description ?: 'Not Available' }}
-                                </span>
+                                {{ $role->description ?: 'Not Available' }}
+                            </span>
 
-                            </td>
+                        </td>
 
-                            <td class="text-center">
+                        <td class="text-center">
 
-                                @if($role->deleted_at)
+                            @if($role->deleted_at)
 
-                                    <span class="text-muted">
-                                        -
-                                    </span>
+                            <span class="text-muted">-</span>
 
-                                @elseif($can('Roles Edit') && $role->name !== 'Super Admin')
+                            @elseif($can('Roles Edit') && $role->name !== 'Super Admin')
 
-                                    <div class="position-box">
+                            <div class="position-box">
 
-                                        <button
-                                            type="button"
-                                            class="position-btn"
-                                            onclick="changePosition({{ $role->id }}, 'down')"
-                                        >
-                                            −
-                                        </button>
+                                <button
+                                type="button"
+                                class="position-btn"
+                                onclick="changePosition({{ $role->id }}, 'down')"
+                                >
+                                −
+                            </button>
 
-                                        <input
-                                            type="text"
-                                            id="position{{ $role->id }}"
-                                            value="{{ $role->position ?? 0 }}"
-                                            readonly
-                                        >
-
-                                        <button
-                                            type="button"
-                                            class="position-btn"
-                                            onclick="changePosition({{ $role->id }}, 'up')"
-                                        >
-                                            +
-                                        </button>
-
-                                    </div>
-
-                                @else
-
-                                    <span>
-                                        {{ $role->position ?? 0 }}
-                                    </span>
-
-                                @endif
-
-                            </td>
-
-                            <td class="text-center">
-
-                                @if($role->deleted_at)
-
-                                    <span class="badge bg-secondary">
-                                        Deleted
-                                    </span>
-
-                                @elseif($can('Roles Edit') && $role->name !== 'Super Admin')
-
-                                    <label class="status-toggle">
-
-                                        <input
-                                            type="checkbox"
-                                            {{ $role->status == 1 ? 'checked' : '' }}
-                                            onchange="toggleStatus(this, '{{ route('admin.roles.status', $role->id) }}')"
-                                        >
-
-                                        <span class="status-slider"></span>
-
-                                    </label>
-
-                                @else
-
-                                    @if($role->status == 1)
-
-                                        <span class="badge bg-success">
-                                            Active
-                                        </span>
-
-                                    @else
-
-                                        <span class="badge bg-danger">
-                                            Inactive
-                                        </span>
-
-                                    @endif
-
-                                @endif
-
-                            </td>
-
-                            <td class="text-center">
-
-                                @if($can('Roles View'))
-
-                                    <button
-                                        type="button"
-                                        onclick="openTableJs({{ $role->id }})"
-                                        class="permission-btn"
-                                    >
-                                        🔑
-
-                                        <span>
-                                            {{ $role->permissions->count() }}
-                                        </span>
-
-                                    </button>
-
-                                @else
-
-                                    <span class="text-muted">
-                                        -
-                                    </span>
-
-                                @endif
-
-                            </td>
-
-                            <td>
-                                {{ $role->createdBy?->name ?? 'System' }}
-                            </td>
-
-                            <td>
-
-                                @if($role->created_at)
-
-                                    {{ $role->created_at->format('d-m-Y H:i') }}
-
-                                @else
-
-                                    -
-
-                                @endif
-
-                            </td>
-
-                            <td class="text-center">
-
-                                <div class="action-buttons">
-
-                                    @if($role->deleted_at)
-
-                                        @if($can('Roles Delete'))
-
-                                            <a
-                                                href="#"
-                                                class="action-icon restore-icon"
-                                                title="Restore"
-                                                onclick="return confirmAlert(
-                                                    'Are you sure you want to restore this role?',
-                                                    function() {
-                                                        window.location.href = '{{ route('admin.roles.restore', $role->id) }}';
-                                                    }
-                                                )"
-                                            >
-                                                ↻
-                                            </a>
-
-                                        @else
-
-                                            <span class="text-muted">
-                                                -
-                                            </span>
-
-                                        @endif
-
-                                    @else
-
-                                        @if($can('Roles Edit'))
-
-                                            <a
-                                                href="{{ route('admin.roles.edit', $role->id) }}"
-                                                class="action-icon edit-icon"
-                                                title="Edit"
-                                            >
-                                                ✎
-                                            </a>
-
-                                        @endif
-
-                                        @if($can('Roles Delete') && $role->name !== 'Super Admin')
-
-                                            <form
-                                                action="{{ route('admin.roles.destroy', $role->id) }}"
-                                                method="POST"
-                                                class="delete-form"
-                                                onsubmit="return confirmForm(this, 'This role will be moved to trash.')"
-                                            >
-
-                                                @csrf
-
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="action-icon delete-icon"
-                                                    title="Delete"
-                                                >
-                                                    🗑
-                                                </button>
-
-                                            </form>
-
-                                        @elseif($role->name === 'Super Admin')
-
-                                            <span class="badge bg-secondary">
-                                                Protected
-                                            </span>
-
-                                        @endif
-
-                                    @endif
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                        @if($can('Roles View'))
-
-                            <tr
-                                id="openTable{{ $role->id }}"
-                                class="d-none permission-row"
+                            <input
+                            type="text"
+                            id="position{{ $role->id }}"
+                            value="{{ $role->position ?? 0 }}"
+                            readonly
                             >
 
-                                <td colspan="9">
+                            <button
+                            type="button"
+                            class="position-btn"
+                            onclick="changePosition({{ $role->id }}, 'up')"
+                            >
+                            +
+                        </button>
 
-                                    <div class="permission-wrapper">
+                    </div>
 
-                                        <div class="permission-title">
+                    @else
 
-                                            🔑 Permissions of
+                    <span>
+                        {{ $role->position ?? 0 }}
+                    </span>
 
-                                            <strong>
-                                                {{ $role->name }}
-                                            </strong>
+                    @endif
 
-                                        </div>
+                </td>
 
-                                        <table class="table table-bordered table-sm mb-0">
+                <td class="text-center">
 
-                                            <thead class="table-light">
+                    @if($role->deleted_at)
 
-                                                <tr>
+                    <span class="badge bg-secondary">
+                        Deleted
+                    </span>
 
-                                                    <th width="40">
-                                                        #
-                                                    </th>
+                    @elseif($can('Roles Edit') && $role->name !== 'Super Admin')
 
-                                                    <th>
-                                                        Permission
-                                                    </th>
+                    <label class="status-toggle">
 
-                                                    <th>
-                                                        Description
-                                                    </th>
+                        <input
+                        type="checkbox"
+                        {{ $role->status == 1 ? 'checked' : '' }}
+                        onchange="toggleStatus(this, '{{ route('admin.roles.status', $role->id) }}')"
+                        >
 
-                                                    <th width="80" class="text-center">
-                                                        Status
-                                                    </th>
+                        <span class="status-slider"></span>
 
-                                                </tr>
+                    </label>
 
-                                            </thead>
+                    @else
 
-                                            <tbody>
+                    @if($role->status == 1)
 
-                                                @forelse($role->permissions as $permission)
+                    <span class="badge bg-success">
+                        Active
+                    </span>
 
-                                                    <tr>
+                    @else
 
-                                                        <td>
-                                                            {{ $loop->iteration }}
-                                                        </td>
+                    <span class="badge bg-danger">
+                        Inactive
+                    </span>
 
-                                                        <td>
-                                                            🔒
-                                                            {{ $permission->name }}
-                                                        </td>
+                    @endif
 
-                                                        <td>
-                                                            {{ $permission->description ?: 'Not Available' }}
-                                                        </td>
+                    @endif
 
-                                                        <td class="text-center">
+                </td>
 
-                                                            @if($permission->status ?? true)
+                <td class="text-center">
 
-                                                                <span class="badge bg-success">
-                                                                    Active
-                                                                </span>
+                    @if($can('Roles View'))
 
-                                                            @else
+                    <button
+                    type="button"
+                    onclick="openTableJs({{ $role->id }})"
+                    class="permission-btn"
+                    >
+                    🔑
+                    <span>
+                        {{ $role->permissions->count() }}
+                    </span>
+                </button>
 
-                                                                <span class="badge bg-danger">
-                                                                    Inactive
-                                                                </span>
+                @else
 
-                                                            @endif
+                <span class="text-muted">-</span>
 
-                                                        </td>
+                @endif
 
-                                                    </tr>
+            </td>
 
-                                                @empty
+            <td>
+                {{ $role->createdBy?->name ?? 'System' }}
+            </td>
 
-                                                    <tr>
+            <td>
 
-                                                        <td
-                                                            colspan="4"
-                                                            class="text-center text-muted"
-                                                        >
-                                                            No permissions assigned.
-                                                        </td>
+                @if($role->created_at)
+                {{ $role->created_at->format('d-m-Y H:i') }}
+                @else
+                -
+                @endif
 
-                                                    </tr>
+            </td>
 
-                                                @endforelse
+            <td class="text-center">
 
-                                            </tbody>
+                <div class="action-buttons">
 
-                                        </table>
+                    @if($role->deleted_at)
 
-                                    </div>
+                    @if($can('Roles Delete'))
 
-                                </td>
+                    <a
+                    href="#"
+                    class="action-icon restore-icon"
+                    title="Restore"
+                    onclick="return confirmAlert(
+                        'Are you sure you want to restore this role?',
+                        function() {
+                            window.location.href = '{{ route('admin.roles.restore', $role->id) }}';
+                        }
+                        )"
+                        >
+                        ↻
+                    </a>
 
-                            </tr>
+                    @else
 
-                        @endif
+                    <span class="text-muted">-</span>
 
-                    @empty
+                    @endif
 
-                        <tr>
+                    @else
 
-                            <td colspan="9" class="text-center py-4">
+                    @if($can('Roles Edit'))
 
-                                <div class="text-muted mb-2">
-                                    No Roles Found
-                                </div>
+                    <a
+                    href="{{ route('admin.roles.edit', $role->id) }}"
+                    class="action-icon edit-icon"
+                    title="Edit"
+                    >
+                    ✎
+                </a>
 
-                                @if(request('view') != 'trash' && $can('Roles Create'))
+                @endif
 
-                                    <a
-                                        href="{{ route('admin.roles.create') }}"
-                                        class="btn btn-primary btn-sm"
-                                    >
-                                        + Add Role
-                                    </a>
+                @if($can('Roles Delete') && $role->name !== 'Super Admin')
 
-                                @endif
+                <form
+                action="{{ route('admin.roles.destroy', $role->id) }}"
+                method="POST"
+                class="delete-form"
+                onsubmit="return confirmForm(this, 'This role will be moved to trash.')"
+                >
 
-                            </td>
+                @csrf
+                @method('DELETE')
 
-                        </tr>
+                <button
+                type="submit"
+                class="action-icon delete-icon"
+                title="Delete"
+                >
+                🗑
+            </button>
 
-                    @endforelse
+        </form>
 
-                </tbody>
+        @elseif($role->name === 'Super Admin')
 
-            </table>
-        </div>
+        <span class="badge bg-secondary">
+            Protected
+        </span>
+
+        @endif
+
+        @endif
 
     </div>
 
+</td>
+
+</tr>
+
+@if($can('Roles View'))
+
+<tr
+id="openTable{{ $role->id }}"
+class="d-none permission-row"
+>
+
+<td colspan="9">
+
+    <div class="permission-wrapper">
+
+        <div class="permission-title">
+
+            🔑 Permissions of
+
+            <strong>
+                {{ $role->name }}
+            </strong>
+
+        </div>
+
+        <table class="table table-bordered table-sm mb-0">
+
+            <thead class="table-light">
+
+                <tr>
+
+                    <th width="40">#</th>
+
+                    <th>Permission</th>
+
+                    <th>Description</th>
+
+                    <th width="80" class="text-center">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @forelse($role->permissions as $permission)
+
+                <tr>
+
+                    <td>
+                        {{ $loop->iteration }}
+                    </td>
+
+                    <td>
+                        🔒
+                        {{ $permission->name }}
+                    </td>
+
+                    <td>
+                        {{ $permission->description ?: 'Not Available' }}
+                    </td>
+
+                    <td class="text-center">
+
+                        @if($permission->status ?? true)
+
+                        <span class="badge bg-success">
+                            Active
+                        </span>
+
+                        @else
+
+                        <span class="badge bg-danger">
+                            Inactive
+                        </span>
+
+                        @endif
+
+                    </td>
+
+                </tr>
+
+                @empty
+
+                <tr>
+
+                    <td
+                    colspan="4"
+                    class="text-center text-muted"
+                    >
+                    No permissions assigned.
+                </td>
+
+            </tr>
+
+            @endforelse
+
+        </tbody>
+
+    </table>
+
 </div>
+
+</td>
+
+</tr>
+
+@endif
+
+@empty
+
+<tr>
+
+    <td colspan="9" class="text-center py-4">
+
+        <div class="text-muted mb-2">
+            No Roles Found
+        </div>
+
+        @if(request('view') != 'trash' && $can('Roles Create'))
+
+        <a
+        href="{{ route('admin.roles.create') }}"
+        class="btn btn-primary btn-sm"
+        >
+        + Add Role
+    </a>
+
+    @endif
+
+</td>
+
+</tr>
+
+@endforelse
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+```
 
 </div>
 
@@ -539,18 +494,6 @@ $can = function ($permission) use ($user, $isSuperAdmin) {
     .compact-table td {
         padding: 6px 8px !important;
         vertical-align: middle;
-    }
-
-    .role-icon {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        border-radius: 50%;
-        background: #f1f3f5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
     }
 
     .role-name {
@@ -641,11 +584,6 @@ $can = function ($permission) use ($user, $isSuperAdmin) {
 
     .status-toggle input:checked + .status-slider:before {
         transform: translateX(20px);
-    }
-
-    .status-toggle input:disabled + .status-slider {
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 
     .permission-btn {

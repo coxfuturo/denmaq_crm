@@ -26,39 +26,102 @@ class LeadController extends Controller
         );
     }
 
+    private function checkLeadOwnership(Lead $lead): void
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            abort(403);
+        }
+
+        if ($user->hasRole('Super Admin')) {
+            return;
+        }
+
+        abort_unless(
+            (int) $lead->created_by === (int) $user->id,
+            403,
+            'You are not allowed to access this lead.'
+        );
+    }
+
     public function index(Request $request)
     {
         $this->checkPermission('Leads View');
 
-        $query = Lead::with(['assignedUser', 'creator']);
+        $user = auth()->user();
+
+        $query = Lead::with([
+            'assignedUser',
+            'creator'
+        ]);
+
+        if (!$user->hasRole('Super Admin')) {
+            $query->where('created_by', $user->id);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('company_name', 'like', "%{$search}%")
+                ->orWhere('company_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhere('alternate_phone', 'like', "%{$search}%")
+                ->orWhere('service', 'like', "%{$search}%")
+                ->orWhereHas('creator', function ($userQuery) use ($search) {
+                    $userQuery->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('alternate_phone', 'like', "%{$search}%")
-                    ->orWhere('service', 'like', "%{$search}%");
+                    ->orWhereRaw(
+                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                        ["%{$search}%"]
+                    );
+                });
             });
         }
 
+        if (
+            $user->hasRole('Super Admin') &&
+            $request->filled('created_by')
+        ) {
+            $query->where(
+                'created_by',
+                $request->created_by
+            );
+        }
+
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where(
+                'status',
+                $request->status
+            );
         }
 
         if ($request->filled('source')) {
-            $query->where('source', $request->source);
+            $query->where(
+                'source',
+                $request->source
+            );
         }
 
         if ($request->filled('assigned_to')) {
-            $query->where('assigned_to', $request->assigned_to);
+            $query->where(
+                'assigned_to',
+                $request->assigned_to
+            );
         }
 
-        $sort = $request->get('sort', 'id');
-        $direction = $request->get('direction', 'desc');
+        $sort = $request->get(
+            'sort',
+            'id'
+        );
+
+        $direction = $request->get(
+            'direction',
+            'desc'
+        );
 
         $allowedSorts = [
             'id',
@@ -81,9 +144,15 @@ class LeadController extends Controller
             $direction = 'desc';
         }
 
-        $query->orderBy($sort, $direction);
+        $query->orderBy(
+            $sort,
+            $direction
+        );
 
-        $perPage = (int) $request->get('per_page', 15);
+        $perPage = (int) $request->get(
+            'per_page',
+            15
+        );
 
         $allowedPerPage = [
             10,
@@ -100,13 +169,13 @@ class LeadController extends Controller
         }
 
         $leads = $query
-            ->paginate($perPage)
-            ->withQueryString();
+        ->paginate($perPage)
+        ->withQueryString();
 
         $users = User::where('status', 1)
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get();
 
         $statuses = [
             'New',
@@ -129,13 +198,16 @@ class LeadController extends Controller
             'Other',
         ];
 
-        return view('admin.leads.index', compact(
-            'leads',
-            'users',
-            'statuses',
-            'sources',
-            'perPage'
-        ));
+        return view(
+            'admin.leads.index',
+            compact(
+                'leads',
+                'users',
+                'statuses',
+                'sources',
+                'perPage'
+            )
+        );
     }
 
     public function create()
@@ -143,9 +215,9 @@ class LeadController extends Controller
         $this->checkPermission('Leads Create');
 
         $users = User::where('status', 1)
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get();
 
         $statuses = [
             'New',
@@ -168,11 +240,14 @@ class LeadController extends Controller
             'Other',
         ];
 
-        return view('admin.leads.create', compact(
-            'users',
-            'statuses',
-            'sources'
-        ));
+        return view(
+            'admin.leads.create',
+            compact(
+                'users',
+                'statuses',
+                'sources'
+            )
+        );
     }
 
     public function store(Request $request)
@@ -199,8 +274,11 @@ class LeadController extends Controller
         Lead::create($validated);
 
         return redirect()
-            ->route('admin.leads.index')
-            ->with('success', 'Lead created successfully.');
+        ->route('admin.leads.index')
+        ->with(
+            'success',
+            'Lead created successfully.'
+        );
     }
 
     public function import(Request $request)
@@ -217,27 +295,40 @@ class LeadController extends Controller
         );
 
         return redirect()
-            ->route('admin.leads.index')
-            ->with('success', 'Leads imported successfully.');
+        ->route('admin.leads.index')
+        ->with(
+            'success',
+            'Leads imported successfully.'
+        );
     }
 
     public function show(Lead $lead)
     {
         $this->checkPermission('Leads View');
 
-        $lead->load(['assignedUser', 'creator']);
+        $this->checkLeadOwnership($lead);
 
-        return view('admin.leads.show', compact('lead'));
+        $lead->load([
+            'assignedUser',
+            'creator'
+        ]);
+
+        return view(
+            'admin.leads.show',
+            compact('lead')
+        );
     }
 
     public function edit(Lead $lead)
     {
         $this->checkPermission('Leads Edit');
 
+        $this->checkLeadOwnership($lead);
+
         $users = User::where('status', 1)
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get();
 
         $statuses = [
             'New',
@@ -260,17 +351,24 @@ class LeadController extends Controller
             'Other',
         ];
 
-        return view('admin.leads.edit', compact(
-            'lead',
-            'users',
-            'statuses',
-            'sources'
-        ));
+        return view(
+            'admin.leads.edit',
+            compact(
+                'lead',
+                'users',
+                'statuses',
+                'sources'
+            )
+        );
     }
 
-    public function update(Request $request, Lead $lead)
-    {
+    public function update(
+        Request $request,
+        Lead $lead
+    ) {
         $this->checkPermission('Leads Edit');
+
+        $this->checkLeadOwnership($lead);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -290,13 +388,20 @@ class LeadController extends Controller
         $lead->update($validated);
 
         return redirect()
-            ->route('admin.leads.index')
-            ->with('success', 'Lead updated successfully.');
+        ->route('admin.leads.index')
+        ->with(
+            'success',
+            'Lead updated successfully.'
+        );
     }
 
-    public function changeStatus(Request $request, Lead $lead)
-    {
+    public function changeStatus(
+        Request $request,
+        Lead $lead
+    ) {
         $this->checkPermission('Leads Edit');
+
+        $this->checkLeadOwnership($lead);
 
         $validated = $request->validate([
             'status' => 'required|string|max:100',
@@ -307,72 +412,126 @@ class LeadController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.leads.index')
-            ->with('success', 'Lead status updated successfully.');
+        ->route('admin.leads.index')
+        ->with(
+            'success',
+            'Lead status updated successfully.'
+        );
     }
 
     public function destroy(Lead $lead)
     {
         $this->checkPermission('Leads Delete');
 
+        $this->checkLeadOwnership($lead);
+
         $lead->delete();
 
         return redirect()
-            ->route('admin.leads.index')
-            ->with('success', 'Lead moved to trash successfully.');
+        ->route('admin.leads.index')
+        ->with(
+            'success',
+            'Lead moved to trash successfully.'
+        );
     }
 
     public function trash(Request $request)
     {
         $this->checkPermission('Leads Delete');
 
+        $user = auth()->user();
+
         $query = Lead::onlyTrashed()
-            ->with(['assignedUser', 'creator']);
+        ->with([
+            'assignedUser',
+            'creator'
+        ]);
+
+        if (!$user->hasRole('Super Admin')) {
+            $query->where(
+                'created_by',
+                $user->id
+            );
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('company_name', 'like', "%{$search}%")
+                ->orWhere('company_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhere('alternate_phone', 'like', "%{$search}%")
+                ->orWhere('service', 'like', "%{$search}%")
+                ->orWhereHas('creator', function ($userQuery) use ($search) {
+                    $userQuery->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('alternate_phone', 'like', "%{$search}%")
-                    ->orWhere('service', 'like', "%{$search}%");
+                    ->orWhereRaw(
+                        "CONCAT(first_name, ' ', last_name) LIKE ?",
+                        ["%{$search}%"]
+                    );
+                });
             });
         }
 
-        $leads = $query
-            ->latest('deleted_at')
-            ->paginate(15)
-            ->withQueryString();
+        if (
+            $user->hasRole('Super Admin') &&
+            $request->filled('created_by')
+        ) {
+            $query->where(
+                'created_by',
+                $request->created_by
+            );
+        }
 
-        return view('admin.leads.trash', compact('leads'));
+        $leads = $query
+        ->latest('deleted_at')
+        ->paginate(15)
+        ->withQueryString();
+
+        return view(
+            'admin.leads.trash',
+            compact('leads')
+        );
     }
 
     public function restore($id)
     {
         $this->checkPermission('Leads Delete');
 
-        $lead = Lead::onlyTrashed()->findOrFail($id);
+        $lead = Lead::onlyTrashed()
+        ->findOrFail($id);
+
+        $this->checkLeadOwnership($lead);
 
         $lead->restore();
 
         return redirect()
-            ->route('admin.leads.trash')
-            ->with('success', 'Lead restored successfully.');
+        ->route('admin.leads.trash')
+        ->with(
+            'success',
+            'Lead restored successfully.'
+        );
     }
 
     public function forceDelete($id)
     {
         $this->checkPermission('Leads Delete');
 
-        $lead = Lead::onlyTrashed()->findOrFail($id);
+        $lead = Lead::onlyTrashed()
+        ->findOrFail($id);
+
+        $this->checkLeadOwnership($lead);
 
         $lead->forceDelete();
 
         return redirect()
-            ->route('admin.leads.trash')
-            ->with('success', 'Lead permanently deleted.');
+        ->route('admin.leads.trash')
+        ->with(
+            'success',
+            'Lead permanently deleted.'
+        );
     }
 }
