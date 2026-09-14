@@ -12,9 +12,14 @@ class PermissionController extends Controller
 {
     private function checkPermission(string $permission): void
     {
+        $user = auth()->user();
+
         abort_unless(
-            auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can($permission),
+            $user &&
+            (
+                $user->hasRole('Super Admin') ||
+                $user->can($permission)
+            ),
             403,
             'You do not have permission to perform this action.'
         );
@@ -27,18 +32,20 @@ class PermissionController extends Controller
 
     public function index(Request $request)
     {
-        $this->checkPermission('Roles View');
+        $this->checkPermission('Permissions View');
 
-        $query = Permission::query();
+        $query = Permission::query()
+        ->where('guard_name', 'web');
 
         if ($request->filled('search')) {
             $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('module', 'like', '%' . $search . '%')
-                    ->orWhere('route', 'like', '%' . $search . '%')
-                    ->orWhere('action', 'like', '%' . $search . '%');
+                ->orWhere('section', 'like', '%' . $search . '%')
+                ->orWhere('module', 'like', '%' . $search . '%')
+                ->orWhere('route', 'like', '%' . $search . '%')
+                ->orWhere('action', 'like', '%' . $search . '%');
             });
         }
 
@@ -47,11 +54,12 @@ class PermissionController extends Controller
         }
 
         $permissions = $query
-            ->orderBy('module', 'ASC')
-            ->orderBy('position', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->paginate(20)
-            ->withQueryString();
+        ->orderBy('section', 'ASC')
+        ->orderBy('module', 'ASC')
+        ->orderBy('position', 'ASC')
+        ->orderBy('id', 'ASC')
+        ->paginate(20)
+        ->withQueryString();
 
         return view(
             'admin.permissions.index',
@@ -61,29 +69,37 @@ class PermissionController extends Controller
 
     public function create()
     {
-        $this->checkPermission('Roles Create');
+        $this->checkPermission('Permissions Create');
 
         return view('admin.permissions.create');
     }
 
     public function store(Request $request)
     {
-        $this->checkPermission('Roles Create');
+        $this->checkPermission('Permissions Create');
 
         $validated = $request->validate([
-            'name' => [
+            'section' => [
                 'required',
                 'string',
                 'max:255',
-                'unique:permissions,name',
             ],
             'module' => [
                 'required',
                 'string',
                 'max:255',
             ],
-            'route' => [
+            'name' => [
                 'required',
+                'string',
+                'max:255',
+                Rule::unique('permissions', 'name')
+                ->where(function ($query) {
+                    return $query->where('guard_name', 'web');
+                }),
+            ],
+            'route' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -92,10 +108,19 @@ class PermissionController extends Controller
                 'string',
                 'max:100',
             ],
+            'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
             'position' => [
                 'nullable',
                 'integer',
                 'min:0',
+            ],
+            'status' => [
+                'nullable',
+                'boolean',
             ],
         ]);
 
@@ -108,15 +133,19 @@ class PermissionController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.permissions.index')
-            ->with('success', 'Permission created successfully.');
+        ->route('admin.permissions.index')
+        ->with(
+            'success',
+            'Permission created successfully.'
+        );
     }
 
     public function edit(string $id)
     {
-        $this->checkPermission('Roles Edit');
+        $this->checkPermission('Permissions Edit');
 
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('guard_name', 'web')
+        ->findOrFail($id);
 
         return view(
             'admin.permissions.edit',
@@ -126,25 +155,34 @@ class PermissionController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $this->checkPermission('Roles Edit');
+        $this->checkPermission('Permissions Edit');
 
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('guard_name', 'web')
+        ->findOrFail($id);
 
         $validated = $request->validate([
-            'name' => [
+            'section' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('permissions', 'name')
-                    ->ignore($permission->id),
             ],
             'module' => [
                 'required',
                 'string',
                 'max:255',
             ],
-            'route' => [
+            'name' => [
                 'required',
+                'string',
+                'max:255',
+                Rule::unique('permissions', 'name')
+                ->where(function ($query) {
+                    return $query->where('guard_name', 'web');
+                })
+                ->ignore($permission->id),
+            ],
+            'route' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -153,10 +191,19 @@ class PermissionController extends Controller
                 'string',
                 'max:100',
             ],
+            'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
             'position' => [
                 'nullable',
                 'integer',
                 'min:0',
+            ],
+            'status' => [
+                'nullable',
+                'boolean',
             ],
         ]);
 
@@ -169,23 +216,27 @@ class PermissionController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.permissions.index')
-            ->with('success', 'Permission updated successfully.');
+        ->route('admin.permissions.index')
+        ->with(
+            'success',
+            'Permission updated successfully.'
+        );
     }
 
     public function destroy(string $id)
     {
-        $this->checkPermission('Roles Delete');
+        $this->checkPermission('Permissions Delete');
 
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('guard_name', 'web')
+        ->findOrFail($id);
 
         if ($permission->roles()->exists()) {
             return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'This permission is assigned to a role. Please remove it from the role first.'
-                );
+            ->back()
+            ->with(
+                'error',
+                'This permission is assigned to a role. Please remove it from the role first.'
+            );
         }
 
         $permission->delete();
@@ -193,15 +244,19 @@ class PermissionController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.permissions.index')
-            ->with('success', 'Permission deleted successfully.');
+        ->route('admin.permissions.index')
+        ->with(
+            'success',
+            'Permission deleted successfully.'
+        );
     }
 
     public function status(string $id)
     {
-        $this->checkPermission('Roles Edit');
+        $this->checkPermission('Permissions Edit');
 
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('guard_name', 'web')
+        ->findOrFail($id);
 
         $permission->status = !$permission->status;
         $permission->save();
@@ -209,11 +264,11 @@ class PermissionController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Permission status updated successfully.'
-            );
+        ->back()
+        ->with(
+            'success',
+            'Permission status updated successfully.'
+        );
     }
 
     public function changeStatus(string $id)

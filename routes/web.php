@@ -25,10 +25,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 ->middleware('auth')
 ->name('logout');
 
-Route::middleware('auth')
-->prefix('admin')
-->name('admin.')
-->group(function () {
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('permission:Dashboard View')
@@ -138,57 +135,25 @@ Route::middleware('auth')
     ->middleware('permission:Roles Delete')
     ->name('permissions.destroy');
 
-    Route::get('/leads', [LeadController::class, 'index'])
-    ->middleware('permission:Leads View')
-    ->name('leads.index');
 
-    Route::get('/leads/create', [LeadController::class, 'create'])
-    ->middleware('permission:Leads Create')
-    ->name('leads.create');
-
-    Route::post('/leads', [LeadController::class, 'store'])
-    ->middleware('permission:Leads Create')
-    ->name('leads.store');
-
-    Route::post('/leads/import', [LeadController::class, 'import'])
-    ->middleware('permission:Leads Create')
-    ->name('leads.import');
-
-    Route::get('/leads/{lead}', [LeadController::class, 'show'])
-    ->middleware('permission:Leads View')
-    ->name('leads.show');
-
-    Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])
-    ->middleware('permission:Leads Edit')
-    ->name('leads.edit');
-
-    Route::put('/leads/{lead}', [LeadController::class, 'update'])
-    ->middleware('permission:Leads Edit')
-    ->name('leads.update');
-
-    Route::patch('/leads/{lead}', [LeadController::class, 'update'])
-    ->middleware('permission:Leads Edit')
-    ->name('leads.update.patch');
-
-    Route::patch('/leads/{lead}/status', [LeadController::class, 'changeStatus'])
-    ->middleware('permission:Leads Edit')
+    Route::get('/leads', [LeadController::class, 'index'])->middleware('permission:Leads View')->name('leads.index');
+    Route::get('/leads/create', [LeadController::class, 'create'])->middleware('permission:Leads Create')->name('leads.create');
+    Route::post('/leads', [LeadController::class, 'store'])->middleware('permission:Leads Create')->name('leads.store');
+    Route::post('/leads/import', [LeadController::class, 'import'])->middleware('permission:Leads Create')->name('leads.import');
+    Route::get('/leads/{lead}', [LeadController::class, 'show'])->middleware('permission:Leads View')->name('leads.show');
+    Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])->middleware('permission:Leads Edit')->name('leads.edit');
+    Route::put('/leads/{lead}', [LeadController::class, 'update'])->middleware('permission:Leads Edit')->name('leads.update');
+    Route::patch('/leads/{lead}', [LeadController::class, 'update'])->middleware('permission:Leads Edit')->name('leads.update.patch');
+    Route::patch('/leads/{lead}/status', [LeadController::class, 'changeStatus'])->middleware('permission:Leads Edit')
     ->name('leads.changeStatus');
-
-    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])
-    ->middleware('permission:Leads Delete')
-    ->name('leads.destroy');
-
-    Route::get('/leads-trash', [LeadController::class, 'trash'])
-    ->middleware('permission:Leads Delete')
-    ->name('leads.trash');
-
-    Route::patch('/leads/{id}/restore', [LeadController::class, 'restore'])
-    ->middleware('permission:Leads Delete')
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->middleware('permission:Leads Delete')->name('leads.destroy');
+    Route::get('/leads-trash', [LeadController::class, 'trash'])->middleware('permission:Leads Delete')->name('leads.trash');
+    Route::patch('/leads/{id}/restore', [LeadController::class, 'restore'])->middleware('permission:Leads Delete')
     ->name('leads.restore');
-
-    Route::delete('/leads/{id}/force-delete', [LeadController::class, 'forceDelete'])
-    ->middleware('permission:Leads Delete')
+    Route::delete('/leads/{id}/force-delete', [LeadController::class, 'forceDelete'])->middleware('permission:Leads Delete')
     ->name('leads.forceDelete');
+
+
 
     Route::get('/clients', [ClientController::class, 'index'])
     ->middleware('permission:Clients View')
@@ -224,7 +189,7 @@ Route::middleware('auth')
 
     Route::patch('/clients/{client}/status', [ClientController::class, 'changeStatus'])
     ->middleware('permission:Clients Edit')
-    ->name('clients.status');
+    ->name('clients.changeStatus');
 
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
     ->middleware('permission:Clients Delete')
@@ -234,7 +199,7 @@ Route::middleware('auth')
     ->middleware('permission:Clients Delete')
     ->name('clients.trash');
 
-    Route::patch('/clients/{id}/restore', [ClientController::class, 'restore'])
+    Route::post('/clients/{id}/restore', [ClientController::class, 'restore'])
     ->middleware('permission:Clients Delete')
     ->name('clients.restore');
 
@@ -242,80 +207,42 @@ Route::middleware('auth')
     ->middleware('permission:Clients Delete')
     ->name('clients.forceDelete');
 
-    Route::get('/followups', [FollowUpController::class, 'index'])
-    ->middleware('permission:Follow Ups View')
-    ->name('followups.index');
+    Route::get('/followups', [FollowUpController::class, 'index'])->name('followups.index');
+    Route::get('/followups/create', [FollowUpController::class, 'create'])->name('followups.create');
+    Route::post('/followups', [FollowUpController::class, 'store'])->name('followups.store');
+    Route::get('/followups/{followup}', [FollowUpController::class, 'show'])->name('followups.show');
+    Route::get('/followups/{followup}/edit', [FollowUpController::class, 'edit'])->name('followups.edit');
+    Route::put('/followups/{followup}', [FollowUpController::class, 'update'])->name('followups.update');
+    Route::patch('/followups/{followup}', [FollowUpController::class, 'update'])->name('followups.update.patch');
+    Route::patch('/followups/{followup}/status', [FollowUpController::class, 'changeStatus'])->name('followups.status');
+    Route::delete('/followups/{followup}', [FollowUpController::class, 'destroy'])->name('followups.destroy');
+    Route::get('/followups-trash', [FollowUpController::class, 'trash'])->name('followups.trash');
+    Route::patch('/followups/{id}/restore', [FollowUpController::class, 'restore'])->name('followups.restore');
+    Route::delete('/followups/{id}/force-delete', [FollowUpController::class, 'forceDelete'])->name('followups.forceDelete');
 
-    Route::get('/followups/create', [FollowUpController::class, 'create'])
-    ->middleware('permission:Follow Ups Create')
-    ->name('followups.create');
 
-    Route::post('/followups', [FollowUpController::class, 'store'])
-    ->middleware('permission:Follow Ups Create')
-    ->name('followups.store');
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update.patch');
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    Route::get('/projects-trash', [ProjectController::class, 'trash'])->name('projects.trash');
+    Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+    Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.forceDelete');
+    
 
-    Route::get('/followups/{followup}', [FollowUpController::class, 'show'])
-    ->middleware('permission:Follow Ups View')
-    ->name('followups.show');
+    Route::get('/quotations', [QuotationController::class, 'index'])->middleware('permission:Quotations View')->name('quotations.index');
 
-    Route::get('/followups/{followup}/edit', [FollowUpController::class, 'edit'])
-    ->middleware('permission:Follow Ups Edit')
-    ->name('followups.edit');
-
-    Route::put('/followups/{followup}', [FollowUpController::class, 'update'])
-    ->middleware('permission:Follow Ups Edit')
-    ->name('followups.update');
-
-    Route::patch('/followups/{followup}', [FollowUpController::class, 'update'])
-    ->middleware('permission:Follow Ups Edit')
-    ->name('followups.update.patch');
-
-    Route::patch('/followups/{followup}/status', [FollowUpController::class, 'changeStatus'])
-    ->middleware('permission:Follow Ups Edit')
-    ->name('followups.status');
-
-    Route::delete('/followups/{followup}', [FollowUpController::class, 'destroy'])
-    ->middleware('permission:Follow Ups Delete')
-    ->name('followups.destroy');
-
-    Route::get('/projects', [ProjectController::class, 'index'])
-    ->name('projects.index');
-
-    Route::get('/projects/create', [ProjectController::class, 'create'])
-    ->name('projects.create');
-
-    Route::post('/projects', [ProjectController::class, 'store'])
-    ->name('projects.store');
-
-    Route::get('/projects/{project}', [ProjectController::class, 'show'])
-    ->name('projects.show');
-
-    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
-    ->name('projects.edit');
-
-    Route::put('/projects/{project}', [ProjectController::class, 'update'])
-    ->name('projects.update');
-
-    Route::patch('/projects/{project}', [ProjectController::class, 'update'])
-    ->name('projects.update.patch');
-
-    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
-    ->name('projects.destroy');
-
-    Route::get('/quotations', [QuotationController::class, 'index'])
-    ->middleware('permission:Quotations View')
-    ->name('quotations.index');
-
-    Route::get('/quotations/create', [QuotationController::class, 'create'])
-    ->middleware('permission:Quotations Create')
+    Route::get('/quotations/create', [QuotationController::class, 'create'])->middleware('permission:Quotations Create')
     ->name('quotations.create');
 
-    Route::post('/quotations', [QuotationController::class, 'store'])
-    ->middleware('permission:Quotations Create')
+    Route::post('/quotations', [QuotationController::class, 'store'])->middleware('permission:Quotations Create')
     ->name('quotations.store');
 
-    Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])
-    ->middleware('permission:Quotations View')
+    Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])->middleware('permission:Quotations View')
     ->name('quotations.show');
 
     Route::get('/quotations/{quotation}/edit', [QuotationController::class, 'edit'])

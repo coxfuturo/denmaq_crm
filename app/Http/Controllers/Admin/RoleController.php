@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
@@ -13,9 +13,14 @@ class RoleController extends Controller
 {
     private function checkPermission(string $permission): void
     {
+        $user = auth()->user();
+
         abort_unless(
-            auth()->user()->hasRole('Super Admin') ||
-            auth()->user()->can($permission),
+            $user &&
+            (
+                $user->hasRole('Super Admin') ||
+                $user->can($permission)
+            ),
             403,
             'You do not have permission to perform this action.'
         );
@@ -32,18 +37,18 @@ class RoleController extends Controller
 
         if ($request->query('view') === 'trash') {
             $roles = Role::onlyTrashed()
-                ->with('permissions')
-                ->withCount('users')
-                ->orderBy('position', 'ASC')
-                ->orderBy('id', 'ASC')
-                ->get();
+            ->with('permissions')
+            ->withCount('users')
+            ->orderBy('position', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
         } else {
             $roles = Role::with('permissions')
-                ->withCount('users')
-                ->whereNull('deleted_at')
-                ->orderBy('position', 'ASC')
-                ->orderBy('id', 'ASC')
-                ->get();
+            ->withCount('users')
+            ->whereNull('deleted_at')
+            ->orderBy('position', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
         }
 
         return view('admin.roles.index', compact('roles'));
@@ -54,11 +59,11 @@ class RoleController extends Controller
         $this->checkPermission('Roles Create');
 
         $permissions = Permission::where('guard_name', 'web')
-            ->where('status', true)
-            ->orderBy('module', 'ASC')
-            ->orderBy('position', 'ASC')
-            ->get()
-            ->groupBy('module');
+        ->where('status', true)
+        ->orderBy('module', 'asc')
+        ->orderBy('position', 'asc')
+        ->get()
+        ->groupBy('module');
 
         return view('admin.roles.create', compact('permissions'));
     }
@@ -72,34 +77,34 @@ class RoleController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:roles,name',
+                'unique:roles,name'
             ],
             'name_alias' => [
                 'nullable',
                 'string',
-                'max:255',
+                'max:255'
             ],
             'icon' => [
                 'nullable',
                 'string',
-                'max:100',
+                'max:100'
             ],
             'position' => [
                 'nullable',
                 'integer',
-                'min:0',
+                'min:0'
             ],
             'status' => [
                 'nullable',
-                'boolean',
+                'boolean'
             ],
             'permissions' => [
                 'nullable',
-                'array',
+                'array'
             ],
             'permissions.*' => [
-                'exists:permissions,name',
-            ],
+                'exists:permissions,name'
+            ]
         ]);
 
         $role = Role::create([
@@ -108,25 +113,23 @@ class RoleController extends Controller
             'name_alias' => $validated['name_alias'] ?? null,
             'icon' => $validated['icon'] ?? null,
             'position' => $validated['position'] ?? 0,
-            'status' => $request->boolean('status'),
+            'status' => $request->boolean('status')
         ]);
 
-        $permissions = $validated['permissions'] ?? [];
+        $permissionNames = $validated['permissions'] ?? [];
 
-        if (!empty($permissions)) {
-            $permissions = Permission::where('guard_name', 'web')
-                ->whereIn('name', $permissions)
-                ->pluck('name')
-                ->toArray();
-        }
+        $permissions = Permission::where('guard_name', 'web')
+        ->whereIn('name', $permissionNames)
+        ->pluck('name')
+        ->toArray();
 
         $role->syncPermissions($permissions);
 
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.roles.index')
-            ->with('success', 'Role created successfully.');
+        ->route('admin.roles.index')
+        ->with('success', 'Role created successfully.');
     }
 
     public function edit($id)
@@ -137,19 +140,21 @@ class RoleController extends Controller
 
         if ($role->trashed()) {
             return redirect()
-                ->route('admin.roles.index', ['view' => 'trash'])
-                ->with(
-                    'error',
-                    'Deleted role cannot be edited. Please restore it first.'
-                );
+            ->route('admin.roles.index', [
+                'view' => 'trash'
+            ])
+            ->with(
+                'error',
+                'Deleted role cannot be edited. Please restore it first.'
+            );
         }
 
         $permissions = Permission::where('guard_name', 'web')
-            ->where('status', true)
-            ->orderBy('module', 'ASC')
-            ->orderBy('position', 'ASC')
-            ->get()
-            ->groupBy('module');
+        ->where('status', true)
+        ->orderBy('module', 'asc')
+        ->orderBy('position', 'asc')
+        ->get()
+        ->groupBy('module');
 
         return view(
             'admin.roles.edit',
@@ -165,11 +170,11 @@ class RoleController extends Controller
 
         if ($role->name === 'Super Admin') {
             return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Super Admin role cannot be modified.'
-                );
+            ->back()
+            ->with(
+                'error',
+                'Super Admin role cannot be modified.'
+            );
         }
 
         $validated = $request->validate([
@@ -177,34 +182,34 @@ class RoleController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:roles,name,' . $role->id,
+                'unique:roles,name,' . $role->id
             ],
             'name_alias' => [
                 'nullable',
                 'string',
-                'max:255',
+                'max:255'
             ],
             'icon' => [
                 'nullable',
                 'string',
-                'max:100',
+                'max:100'
             ],
             'position' => [
                 'nullable',
                 'integer',
-                'min:0',
+                'min:0'
             ],
             'status' => [
                 'nullable',
-                'boolean',
+                'boolean'
             ],
             'permissions' => [
                 'nullable',
-                'array',
+                'array'
             ],
             'permissions.*' => [
-                'exists:permissions,name',
-            ],
+                'exists:permissions,name'
+            ]
         ]);
 
         $role->update([
@@ -212,25 +217,23 @@ class RoleController extends Controller
             'name_alias' => $validated['name_alias'] ?? null,
             'icon' => $validated['icon'] ?? null,
             'position' => $validated['position'] ?? $role->position,
-            'status' => $request->boolean('status'),
+            'status' => $request->boolean('status')
         ]);
 
-        $permissions = $validated['permissions'] ?? [];
+        $permissionNames = $validated['permissions'] ?? [];
 
-        if (!empty($permissions)) {
-            $permissions = Permission::where('guard_name', 'web')
-                ->whereIn('name', $permissions)
-                ->pluck('name')
-                ->toArray();
-        }
+        $permissions = Permission::where('guard_name', 'web')
+        ->whereIn('name', $permissionNames)
+        ->pluck('name')
+        ->toArray();
 
         $role->syncPermissions($permissions);
 
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.roles.index')
-            ->with('success', 'Role updated successfully.');
+        ->route('admin.roles.index')
+        ->with('success', 'Role updated successfully.');
     }
 
     public function status($id)
@@ -241,11 +244,11 @@ class RoleController extends Controller
 
         if ($role->name === 'Super Admin') {
             return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Super Admin status cannot be changed.'
-                );
+            ->back()
+            ->with(
+                'error',
+                'Super Admin status cannot be changed.'
+            );
         }
 
         $role->status = !$role->status;
@@ -254,11 +257,11 @@ class RoleController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Role status changed successfully.'
-            );
+        ->back()
+        ->with(
+            'success',
+            'Role status changed successfully.'
+        );
     }
 
     public function changeStatus($id)
@@ -275,7 +278,7 @@ class RoleController extends Controller
         if ($role->name === 'Super Admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Super Admin position cannot be changed.',
+                'message' => 'Super Admin position cannot be changed.'
             ], 403);
         }
 
@@ -283,8 +286,8 @@ class RoleController extends Controller
             'position' => [
                 'required',
                 'integer',
-                'min:0',
-            ],
+                'min:0'
+            ]
         ]);
 
         $oldPosition = (int) $role->position;
@@ -294,7 +297,7 @@ class RoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Position is already set.',
-                'position' => $role->position,
+                'position' => $role->position
             ]);
         }
 
@@ -304,9 +307,9 @@ class RoleController extends Controller
             $newPosition
         ) {
             $otherRole = Role::whereNull('deleted_at')
-                ->where('id', '!=', $role->id)
-                ->where('position', $newPosition)
-                ->first();
+            ->where('id', '!=', $role->id)
+            ->where('position', $newPosition)
+            ->first();
 
             if ($otherRole) {
                 $otherRole->position = $oldPosition;
@@ -320,7 +323,7 @@ class RoleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Role position updated successfully.',
-            'position' => $newPosition,
+            'position' => $newPosition
         ]);
     }
 
@@ -332,20 +335,20 @@ class RoleController extends Controller
 
         if ($role->name === 'Super Admin') {
             return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'Super Admin role cannot be deleted.'
-                );
+            ->back()
+            ->with(
+                'error',
+                'Super Admin role cannot be deleted.'
+            );
         }
 
         if ($role->users()->exists()) {
             return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'This role is assigned to users. Please reassign users first.'
-                );
+            ->back()
+            ->with(
+                'error',
+                'This role is assigned to users. Please reassign users first.'
+            );
         }
 
         $role->delete();
@@ -353,11 +356,11 @@ class RoleController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.roles.index')
-            ->with(
-                'success',
-                'Role moved to trash successfully.'
-            );
+        ->route('admin.roles.index')
+        ->with(
+            'success',
+            'Role moved to trash successfully.'
+        );
     }
 
     public function restore($id)
@@ -368,20 +371,22 @@ class RoleController extends Controller
 
         if (!$role->trashed()) {
             return redirect()
-                ->route('admin.roles.index')
-                ->with(
-                    'error',
-                    'This role is already active.'
-                );
+            ->route('admin.roles.index')
+            ->with(
+                'error',
+                'This role is already active.'
+            );
         }
 
         if ($role->name === 'Super Admin') {
             return redirect()
-                ->route('admin.roles.index', ['view' => 'trash'])
-                ->with(
-                    'error',
-                    'Super Admin role does not need to be restored.'
-                );
+            ->route('admin.roles.index', [
+                'view' => 'trash'
+            ])
+            ->with(
+                'error',
+                'Super Admin role does not need to be restored.'
+            );
         }
 
         $role->restore();
@@ -389,10 +394,12 @@ class RoleController extends Controller
         $this->clearPermissionCache();
 
         return redirect()
-            ->route('admin.roles.index', ['view' => 'trash'])
-            ->with(
-                'success',
-                'Role restored successfully.'
-            );
+        ->route('admin.roles.index', [
+            'view' => 'trash'
+        ])
+        ->with(
+            'success',
+            'Role restored successfully.'
+        );
     }
 }
