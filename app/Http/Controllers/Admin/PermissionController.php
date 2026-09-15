@@ -42,7 +42,6 @@ class PermissionController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
-                ->orWhere('section', 'like', '%' . $search . '%')
                 ->orWhere('module', 'like', '%' . $search . '%')
                 ->orWhere('route', 'like', '%' . $search . '%')
                 ->orWhere('action', 'like', '%' . $search . '%');
@@ -54,7 +53,6 @@ class PermissionController extends Controller
         }
 
         $permissions = $query
-        ->orderBy('section', 'ASC')
         ->orderBy('module', 'ASC')
         ->orderBy('position', 'ASC')
         ->orderBy('id', 'ASC')
@@ -79,11 +77,6 @@ class PermissionController extends Controller
         $this->checkPermission('Permissions Create');
 
         $validated = $request->validate([
-            'section' => [
-                'required',
-                'string',
-                'max:255',
-            ],
             'module' => [
                 'required',
                 'string',
@@ -107,11 +100,6 @@ class PermissionController extends Controller
                 'required',
                 'string',
                 'max:100',
-            ],
-            'description' => [
-                'nullable',
-                'string',
-                'max:1000',
             ],
             'position' => [
                 'nullable',
@@ -161,11 +149,6 @@ class PermissionController extends Controller
         ->findOrFail($id);
 
         $validated = $request->validate([
-            'section' => [
-                'required',
-                'string',
-                'max:255',
-            ],
             'module' => [
                 'required',
                 'string',
@@ -190,11 +173,6 @@ class PermissionController extends Controller
                 'required',
                 'string',
                 'max:100',
-            ],
-            'description' => [
-                'nullable',
-                'string',
-                'max:1000',
             ],
             'position' => [
                 'nullable',

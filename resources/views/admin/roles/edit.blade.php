@@ -17,24 +17,14 @@ $assignedPermissions = $role->permissions
 ->pluck('name')
 ->toArray();
 
-$oldPermissions = old(
-'permissions',
-$assignedPermissions
-);
+$oldPermissions = old('permissions', $assignedPermissions);
 
 $isSuperAdminRole = $role->name === 'Super Admin';
-
-$permissionCollection = collect($permissions)
-->flatten(1);
-
-$permissionSections = $permissionCollection
-->groupBy(function ($permission) {
-    return $permission->section ?: 'Other';
-});
 @endphp
 
 <div class="container-fluid role-page">
 
+    ```
     <div class="page-header d-flex justify-content-between align-items-center">
 
         <div>
@@ -129,13 +119,11 @@ data-bs-dismiss="alert">
     <a href="{{ route('admin.roles.index') }}"
     class="btn btn-primary">
 
-    <i data-feather="arrow-left"
-    style="width: 16px;">
-</i>
+    <i data-feather="arrow-left"></i>
 
-<span class="ms-1">
-    Back to Roles
-</span>
+    <span class="ms-1">
+        Back to Roles
+    </span>
 
 </a>
 
@@ -173,53 +161,80 @@ data-bs-dismiss="alert">
 @endif
 
 <form action="{{ route('admin.roles.update', $role->id) }}"
-  method="POST">
+    method="POST">
 
-  @csrf
+    @csrf
 
-  @method('PUT')
+    @method('PUT')
 
-  <div class="card mb-4">
+    <div class="card mb-4">
 
-    <div class="card-header">
+        <div class="card-header">
 
-        <h5>
-            Role Information
-        </h5>
+            <h5>
+                Role Information
+            </h5>
 
-        <small>
-            Update basic information for this role.
-        </small>
+            <small>
+                Update basic information for this role.
+            </small>
 
-    </div>
+        </div>
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <div class="row">
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label for="name"
+                    class="form-label">
+
+                    Role Name
+
+                    <span class="text-danger">
+                        *
+                    </span>
+
+                </label>
+
+                <input type="text"
+                name="name"
+                id="name"
+                class="form-control @error('name') is-invalid @enderror"
+                value="{{ old('name', $role->name) }}"
+                placeholder="Enter role name"
+                required
+                {{ $isSuperAdminRole ? 'readonly' : '' }}>
+
+                @error('name')
+
+                <div class="invalid-feedback">
+                    {{ $message }}
+                </div>
+
+                @enderror
+
+            </div>
 
             <div class="col-md-6 mb-3">
 
-                <label for="name"
+                <label for="name_alias"
                 class="form-label">
 
-                Role Name
-
-                <span class="text-danger">
-                    *
-                </span>
+                Role Alias
 
             </label>
 
             <input type="text"
-            name="name"
-            id="name"
-            class="form-control @error('name') is-invalid @enderror"
-            value="{{ old('name', $role->name) }}"
-            placeholder="Enter role name"
-            required
+            name="name_alias"
+            id="name_alias"
+            class="form-control @error('name_alias') is-invalid @enderror"
+            value="{{ old('name_alias', $role->name_alias) }}"
+            placeholder="Enter role alias"
             {{ $isSuperAdminRole ? 'readonly' : '' }}>
 
-            @error('name')
+            @error('name_alias')
 
             <div class="invalid-feedback">
                 {{ $message }}
@@ -231,22 +246,26 @@ data-bs-dismiss="alert">
 
         <div class="col-md-6 mb-3">
 
-            <label for="name_alias"
+            <label for="icon"
             class="form-label">
 
-            Role Alias
+            Icon
 
         </label>
 
         <input type="text"
-        name="name_alias"
-        id="name_alias"
-        class="form-control @error('name_alias') is-invalid @enderror"
-        value="{{ old('name_alias', $role->name_alias) }}"
-        placeholder="Enter role alias"
+        name="icon"
+        id="icon"
+        class="form-control @error('icon') is-invalid @enderror"
+        value="{{ old('icon', $role->icon) }}"
+        placeholder="Example: users"
         {{ $isSuperAdminRole ? 'readonly' : '' }}>
 
-        @error('name_alias')
+        <div class="form-text">
+            Use Feather icon name such as users, shield or user.
+        </div>
+
+        @error('icon')
 
         <div class="invalid-feedback">
             {{ $message }}
@@ -256,28 +275,24 @@ data-bs-dismiss="alert">
 
     </div>
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-3 mb-3">
 
-        <label for="icon"
+        <label for="position"
         class="form-label">
 
-        Icon
+        Position
 
     </label>
 
-    <input type="text"
-    name="icon"
-    id="icon"
-    class="form-control @error('icon') is-invalid @enderror"
-    value="{{ old('icon', $role->icon) }}"
-    placeholder="Example: users"
+    <input type="number"
+    name="position"
+    id="position"
+    class="form-control @error('position') is-invalid @enderror"
+    value="{{ old('position', $role->position) }}"
+    min="0"
     {{ $isSuperAdminRole ? 'readonly' : '' }}>
 
-    <div class="form-text">
-        Use Feather icon name such as users, shield or user.
-    </div>
-
-    @error('icon')
+    @error('position')
 
     <div class="invalid-feedback">
         {{ $message }}
@@ -289,38 +304,15 @@ data-bs-dismiss="alert">
 
 <div class="col-md-3 mb-3">
 
-    <label for="position"
-    class="form-label">
-
-    Position
-
-</label>
-
-<input type="number"
-name="position"
-id="position"
-class="form-control @error('position') is-invalid @enderror"
-value="{{ old('position', $role->position) }}"
-min="0"
-{{ $isSuperAdminRole ? 'readonly' : '' }}>
-
-@error('position')
-
-<div class="invalid-feedback">
-    {{ $message }}
-</div>
-
-@enderror
-
-</div>
-
-<div class="col-md-3 mb-3">
-
     <label class="form-label d-block">
         Status
     </label>
 
     <div class="form-check form-switch mt-2">
+
+        <input type="hidden"
+        name="status"
+        value="0">
 
         <input type="checkbox"
         name="status"
@@ -403,29 +395,29 @@ min="0"
 
 <div class="card-body">
 
-    @forelse($permissionSections as $section => $sectionPermissions)
+    @forelse($permissions->groupBy(function ($permission) {
+        return $permission->module ?: 'Other';
+    }) as $module => $modulePermissions)
 
     @php
-    $sectionName = $section ?: 'Other';
+    $moduleName = $module ?: 'Other';
 
-    $sectionSlug = \Illuminate\Support\Str::slug(
-    $sectionName
-    );
+    $moduleSlug = \Illuminate\Support\Str::slug($moduleName);
 
-    $sectionPermissionNames = $sectionPermissions
+    $modulePermissionNames = $modulePermissions
     ->pluck('name')
     ->toArray();
 
-    $sectionSelectedCount = count(
+    $selectedCount = count(
     array_intersect(
-    $sectionPermissionNames,
+    $modulePermissionNames,
     $oldPermissions
     )
     );
 
-    $sectionAllSelected =
-    count($sectionPermissionNames) > 0 &&
-    $sectionSelectedCount === count($sectionPermissionNames);
+    $allModuleSelected =
+    count($modulePermissionNames) > 0 &&
+    $selectedCount === count($modulePermissionNames);
     @endphp
 
     <div class="permission-section">
@@ -435,19 +427,17 @@ min="0"
             <div class="section-title-wrapper">
 
                 <div class="section-icon">
-
                     <i data-feather="layers"></i>
-
                 </div>
 
                 <div>
 
                     <h5 class="section-title">
-                        {{ $sectionName }}
+                        {{ $moduleName }}
                     </h5>
 
                     <span class="section-description">
-                        Manage {{ $sectionName }} permissions
+                        Manage {{ $moduleName }} permissions
                     </span>
 
                 </div>
@@ -459,13 +449,13 @@ min="0"
             <div class="section-select">
 
                 <input type="checkbox"
-                class="form-check-input section-checkbox"
-                data-section="{{ $sectionSlug }}"
-                id="section_{{ $sectionSlug }}"
-                {{ $sectionAllSelected ? 'checked' : '' }}>
+                class="form-check-input module-checkbox"
+                data-module="{{ $moduleSlug }}"
+                id="module_{{ $moduleSlug }}"
+                {{ $allModuleSelected ? 'checked' : '' }}>
 
-                <label for="section_{{ $sectionSlug }}">
-                    Select Section
+                <label for="module_{{ $moduleSlug }}">
+                    Select All
                 </label>
 
             </div>
@@ -474,148 +464,64 @@ min="0"
 
         </div>
 
-        @php
-        $modules = $sectionPermissions
-        ->groupBy(function ($permission) {
-            return $permission->module ?: 'Other';
-        });
-        @endphp
+        <div class="row g-2 p-3">
 
-        @foreach($modules as $module => $modulePermissions)
+            @foreach($modulePermissions as $permission)
 
-        @php
-        $moduleName = $module ?: 'Other';
+            @php
+            $permissionChecked = in_array(
+            $permission->name,
+            $oldPermissions,
+            true
+            );
 
-        $moduleSlug = $sectionSlug . '_' .
-        \Illuminate\Support\Str::slug($moduleName);
+            $permissionLabel = $permission->action
+            ?: \Illuminate\Support\Str::headline(
+            str_replace(
+            ['.', '_', '-'],
+            ' ',
+            $permission->name
+            )
+            );
+            @endphp
 
-        $modulePermissionNames = $modulePermissions
-        ->pluck('name')
-        ->toArray();
+            <div class="col-xl-3 col-lg-4 col-md-6">
 
-        $selectedCount = count(
-        array_intersect(
-        $modulePermissionNames,
-        $oldPermissions
-        )
-        );
+                <div class="permission-item">
 
-        $allModuleSelected =
-        count($modulePermissionNames) > 0 &&
-        $selectedCount === count($modulePermissionNames);
-        @endphp
+                    <div class="form-check">
 
-        <div class="permission-module">
+                        <input type="checkbox"
+                        name="permissions[]"
+                        value="{{ $permission->name }}"
+                        class="form-check-input permission-checkbox permission-{{ $moduleSlug }}"
+                        data-module="{{ $moduleSlug }}"
+                        id="permission_{{ $permission->id }}"
+                        {{ $permissionChecked ? 'checked' : '' }}
+                        {{ $isSuperAdminRole ? 'disabled' : '' }}>
 
-            <div class="module-header">
+                        <label class="form-check-label"
+                        for="permission_{{ $permission->id }}">
 
-                <div class="module-title-wrapper">
+                        <strong>
+                            {{ $permissionLabel }}
+                        </strong>
 
-                    <div class="module-icon">
+                        <small class="permission-name">
+                            {{ $permission->name }}
+                        </small>
 
-                        <i data-feather="folder"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h6 class="module-title">
-                            {{ $moduleName }}
-                        </h6>
-
-                        <span class="module-count">
-                            {{ count($modulePermissions) }}
-                            {{ count($modulePermissions) === 1 ? 'Permission' : 'Permissions' }}
-                        </span>
-
-                    </div>
-
-                </div>
-
-                @if(!$isSuperAdminRole)
-
-                <div class="module-select">
-
-                    <input type="checkbox"
-                    class="form-check-input module-checkbox"
-                    data-module="{{ $moduleSlug }}"
-                    data-section="{{ $sectionSlug }}"
-                    id="module_{{ $moduleSlug }}"
-                    {{ $allModuleSelected ? 'checked' : '' }}>
-
-                    <label for="module_{{ $moduleSlug }}">
-                        Select Module
                     </label>
 
                 </div>
 
-                @endif
-
             </div>
-
-            <div class="row g-2">
-
-                @foreach($modulePermissions as $permission)
-
-                @php
-                $permissionChecked = in_array(
-                $permission->name,
-                $oldPermissions,
-                true
-                );
-
-                $permissionLabel = $permission->action
-                ?: \Illuminate\Support\Str::headline(
-                str_replace(
-                ['.', '_', '-'],
-                ' ',
-                $permission->name
-                )
-                );
-                @endphp
-
-                <div class="col-xl-3 col-lg-4 col-md-6">
-
-                    <div class="permission-item">
-
-                        <div class="form-check">
-
-                            <input type="checkbox"
-                            name="permissions[]"
-                            value="{{ $permission->name }}"
-                            class="form-check-input permission-checkbox"
-                            data-section="{{ $sectionSlug }}"
-                            data-module="{{ $moduleSlug }}"
-                            id="permission_{{ $permission->id }}"
-                            {{ $permissionChecked ? 'checked' : '' }}
-                            {{ $isSuperAdminRole ? 'disabled' : '' }}>
-
-                            <label class="form-check-label"
-                            for="permission_{{ $permission->id }}">
-
-                            <strong>
-                                {{ $permissionLabel }}
-                            </strong>
-
-                            <small class="permission-name">
-                                {{ $permission->name }}
-                            </small>
-
-                        </label>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            @endforeach
 
         </div>
 
-    </div>
+        @endforeach
 
-    @endforeach
+    </div>
 
 </div>
 
@@ -695,11 +601,11 @@ class="btn btn-primary">
 </form>
 
 @endif
+```
 
 </div>
 
 <style>
-
     .role-page {
         padding-bottom: 30px;
     }
@@ -808,78 +714,6 @@ class="btn btn-primary">
         font-weight: 500;
     }
 
-    .permission-module {
-        margin: 12px;
-        border: 1px solid #e1e5e9;
-        border-radius: 7px;
-        overflow: hidden;
-    }
-
-    .permission-module:last-child {
-        margin-bottom: 12px;
-    }
-
-    .module-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fafbfc;
-        border-bottom: 1px solid #e9ecef;
-        padding: 10px 13px;
-    }
-
-    .module-title-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .module-icon {
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 5px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-    }
-
-    .module-icon svg {
-        width: 14px;
-        height: 14px;
-    }
-
-    .module-title {
-        margin: 0;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .module-count {
-        display: block;
-        color: #6c757d;
-        font-size: 10px;
-        margin-top: 1px;
-    }
-
-    .module-select {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        color: #495057;
-    }
-
-    .module-select label {
-        cursor: pointer;
-        margin: 0;
-    }
-
-    .permission-module .row {
-        padding: 11px;
-    }
-
     .permission-item {
         border: 1px solid #e9ecef;
         border-radius: 5px;
@@ -965,11 +799,6 @@ class="btn btn-primary">
             gap: 12px;
         }
 
-        .module-header {
-            align-items: flex-start;
-            gap: 10px;
-        }
-
         .permission-actions {
             width: 100%;
         }
@@ -983,33 +812,27 @@ class="btn btn-primary">
         }
 
     }
-
 </style>
 
 @push('scripts')
 
 <script>
-
     document.addEventListener('DOMContentLoaded', function () {
 
-        const selectAllButton =
-        document.getElementById('selectAll');
-
-        const deselectAllButton =
-        document.getElementById('deselectAll');
+        const selectAllButton = document.getElementById('selectAll');
+        const deselectAllButton = document.getElementById('deselectAll');
 
         function getModulePermissions(module) {
 
             return document.querySelectorAll(
-                '.permission-checkbox[data-module="' + module + '"]'
+                '.permission-' + module
                 );
 
         }
 
         function updateModuleCheckbox(module) {
 
-            const moduleCheckbox =
-            document.querySelector(
+            const moduleCheckbox = document.querySelector(
                 '.module-checkbox[data-module="' + module + '"]'
                 );
 
@@ -1017,11 +840,9 @@ class="btn btn-primary">
                 return;
             }
 
-            const permissions =
-            getModulePermissions(module);
+            const permissions = getModulePermissions(module);
 
-            const total =
-            permissions.length;
+            const total = permissions.length;
 
             let checked = 0;
 
@@ -1034,222 +855,55 @@ class="btn btn-primary">
             });
 
             moduleCheckbox.checked =
-            total > 0 && checked === total;
+            total > 0 &&
+            checked === total;
 
             moduleCheckbox.indeterminate =
-            checked > 0 && checked < total;
-        }
-
-        function updateSectionCheckbox(section) {
-
-            const sectionCheckbox =
-            document.querySelector(
-                '.section-checkbox[data-section="' + section + '"]'
-                );
-
-            if (!sectionCheckbox) {
-                return;
-            }
-
-            const permissions =
-            document.querySelectorAll(
-                '.permission-checkbox[data-section="' + section + '"]'
-                );
-
-            const total =
-            permissions.length;
-
-            let checked = 0;
-
-            permissions.forEach(function (checkbox) {
-
-                if (checkbox.checked) {
-                    checked++;
-                }
-
-            });
-
-            sectionCheckbox.checked =
-            total > 0 && checked === total;
-
-            sectionCheckbox.indeterminate =
-            checked > 0 && checked < total;
-        }
-
-        if (selectAllButton) {
-
-            selectAllButton.addEventListener(
-                'click',
-                function () {
-
-                    document.querySelectorAll(
-                        '.permission-checkbox'
-                        ).forEach(function (checkbox) {
-
-                            checkbox.checked = true;
-
-                        });
-
-                        document.querySelectorAll(
-                            '.module-checkbox'
-                            ).forEach(function (checkbox) {
-
-                                checkbox.checked = true;
-                                checkbox.indeterminate = false;
-
-                            });
-
-                            document.querySelectorAll(
-                                '.section-checkbox'
-                                ).forEach(function (checkbox) {
-
-                                    checkbox.checked = true;
-                                    checkbox.indeterminate = false;
-
-                                });
-
-                            }
-                            );
+            checked > 0 &&
+            checked < total;
 
         }
 
-        if (deselectAllButton) {
+        document.querySelectorAll('.module-checkbox').forEach(function (moduleCheckbox) {
 
-            deselectAllButton.addEventListener(
-                'click',
-                function () {
+            moduleCheckbox.addEventListener('change', function () {
 
-                    document.querySelectorAll(
-                        '.permission-checkbox'
-                        ).forEach(function (checkbox) {
+                const module = this.dataset.module;
 
-                            checkbox.checked = false;
+                getModulePermissions(module).forEach(function (checkbox) {
 
-                        });
-
-                        document.querySelectorAll(
-                            '.module-checkbox'
-                            ).forEach(function (checkbox) {
-
-                                checkbox.checked = false;
-                                checkbox.indeterminate = false;
-
-                            });
-
-                            document.querySelectorAll(
-                                '.section-checkbox'
-                                ).forEach(function (checkbox) {
-
-                                    checkbox.checked = false;
-                                    checkbox.indeterminate = false;
-
-                                });
-
-                            }
-                            );
-
-        }
-
-        document.querySelectorAll(
-            '.section-checkbox'
-            ).forEach(function (sectionCheckbox) {
-
-                sectionCheckbox.addEventListener(
-                    'change',
-                    function () {
-
-                        const section =
-                        this.dataset.section;
-
-                        document.querySelectorAll(
-                            '.permission-checkbox[data-section="' +
-                            section +
-                            '"]'
-                            ).forEach(function (checkbox) {
-
-                                checkbox.checked =
-                                sectionCheckbox.checked;
-
-                            });
-
-                            document.querySelectorAll(
-                                '.module-checkbox[data-section="' +
-                                section +
-                                '"]'
-                                ).forEach(function (checkbox) {
-
-                                    checkbox.checked =
-                                    sectionCheckbox.checked;
-
-                                    checkbox.indeterminate = false;
-
-                                });
-
-                                sectionCheckbox.indeterminate = false;
-
-                            }
-                            );
-
-            });
-
-            document.querySelectorAll(
-                '.module-checkbox'
-                ).forEach(function (moduleCheckbox) {
-
-                    moduleCheckbox.addEventListener(
-                        'change',
-                        function () {
-
-                            const module =
-                            this.dataset.module;
-
-                            const section =
-                            this.dataset.section;
-
-                            getModulePermissions(
-                                module
-                                ).forEach(function (checkbox) {
-
-                                    checkbox.checked =
-                                    moduleCheckbox.checked;
-
-                                });
-
-                                moduleCheckbox.indeterminate = false;
-
-                                updateSectionCheckbox(
-                                    section
-                                    );
-
-                            }
-                            );
+                    checkbox.checked =
+                    moduleCheckbox.checked;
 
                 });
 
+                updateModuleCheckbox(module);
+
+            });
+
+        });
+
+        document.querySelectorAll('.permission-checkbox').forEach(function (permissionCheckbox) {
+
+            permissionCheckbox.addEventListener('change', function () {
+
+                updateModuleCheckbox(
+                    this.dataset.module
+                    );
+
+            });
+
+        });
+
+        if (selectAllButton) {
+
+            selectAllButton.addEventListener('click', function () {
+
                 document.querySelectorAll(
                     '.permission-checkbox'
-                    ).forEach(function (permissionCheckbox) {
+                    ).forEach(function (checkbox) {
 
-                        permissionCheckbox.addEventListener(
-                            'change',
-                            function () {
-
-                                const module =
-                                this.dataset.module;
-
-                                const section =
-                                this.dataset.section;
-
-                                updateModuleCheckbox(
-                                    module
-                                    );
-
-                                updateSectionCheckbox(
-                                    section
-                                    );
-
-                            }
-                            );
+                        checkbox.checked = true;
 
                     });
 
@@ -1257,32 +911,55 @@ class="btn btn-primary">
                         '.module-checkbox'
                         ).forEach(function (checkbox) {
 
-                            updateModuleCheckbox(
-                                checkbox.dataset.module
-                                );
+                            checkbox.checked = true;
+                            checkbox.indeterminate = false;
 
                         });
 
-                        document.querySelectorAll(
-                            '.section-checkbox'
-                            ).forEach(function (checkbox) {
+                    });
 
-                                updateSectionCheckbox(
-                                    checkbox.dataset.section
-                                    );
+        }
 
-                            });
+        if (deselectAllButton) {
 
-                            if (typeof feather !== 'undefined') {
+            deselectAllButton.addEventListener('click', function () {
 
-                                feather.replace();
+                document.querySelectorAll(
+                    '.permission-checkbox'
+                    ).forEach(function (checkbox) {
 
-                            }
+                        checkbox.checked = false;
+
+                    });
+
+                    document.querySelectorAll(
+                        '.module-checkbox'
+                        ).forEach(function (checkbox) {
+
+                            checkbox.checked = false;
+                            checkbox.indeterminate = false;
 
                         });
 
-                    </script>
+                    });
 
-                    @endpush
+        }
 
-                    @endsection
+        document.querySelectorAll('.module-checkbox').forEach(function (checkbox) {
+
+            updateModuleCheckbox(
+                checkbox.dataset.module
+                );
+
+        });
+
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+
+    });
+</script>
+
+@endpush
+
+@endsection

@@ -62,8 +62,8 @@ class RoleController extends Controller
         ->where('status', true)
         ->orderBy('module', 'asc')
         ->orderBy('position', 'asc')
-        ->get()
-        ->groupBy('module');
+        ->orderBy('id', 'asc')
+        ->get();
 
         return view('admin.roles.create', compact('permissions'));
     }
@@ -153,8 +153,8 @@ class RoleController extends Controller
         ->where('status', true)
         ->orderBy('module', 'asc')
         ->orderBy('position', 'asc')
-        ->get()
-        ->groupBy('module');
+        ->orderBy('id', 'asc')
+        ->get();
 
         return view(
             'admin.roles.edit',
