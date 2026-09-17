@@ -2,227 +2,419 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
 
-class RolePermissionSeeder extends Seeder
+class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
         $permissions = [
-            'dashboard.view',
-            'users.view',
-            'users.create',
-            'users.edit',
-            'users.delete',
-            'users.restore',
-            'users.force-delete',
-            'users.status',
-            'roles.view',
-            'roles.create',
-            'roles.edit',
-            'roles.delete',
-            'roles.restore',
-            'roles.status',
-            'permissions.view',
-            'permissions.create',
-            'permissions.edit',
-            'permissions.delete',
-            'permissions.status',
-            'leads.view',
-            'leads.create',
-            'leads.edit',
-            'leads.delete',
-            'leads.restore',
-            'leads.force-delete',
-            'leads.status',
-            'leads.import',
-            'clients.view',
-            'clients.create',
-            'clients.edit',
-            'clients.delete',
-            'clients.restore',
-            'clients.force-delete',
-            'clients.status',
-            'clients.import',
-            'followups.view',
-            'followups.create',
-            'followups.edit',
-            'followups.delete',
-            'projects.view',
-            'projects.create',
-            'projects.edit',
-            'projects.delete',
-            'quotations.view',
-            'quotations.create',
-            'quotations.edit',
-            'quotations.delete',
-            'invoices.view',
-            'invoices.create',
-            'invoices.edit',
-            'invoices.delete',
-            'payments.view',
-            'payments.create',
-            'payments.edit',
-            'payments.delete',
-            'reports.leads',
-            'reports.sales',
-            'reports.users',
-            'settings.company',
-            'settings.company.update',
-            'profile.view',
-            'profile.edit',
+            [
+                'module' => 'Dashboard',
+                'name' => 'Dashboard View',
+                'route' => 'admin.dashboard',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Users',
+                'name' => 'Users View',
+                'route' => 'admin.users.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Users',
+                'name' => 'Users Create',
+                'route' => 'admin.users.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Users',
+                'name' => 'Users Edit',
+                'route' => 'admin.users.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Users',
+                'name' => 'Users Delete',
+                'route' => 'admin.users.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Roles',
+                'name' => 'Roles View',
+                'route' => 'admin.roles.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Roles',
+                'name' => 'Roles Create',
+                'route' => 'admin.roles.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Roles',
+                'name' => 'Roles Edit',
+                'route' => 'admin.roles.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Roles',
+                'name' => 'Roles Delete',
+                'route' => 'admin.roles.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Permissions',
+                'name' => 'Permissions View',
+                'route' => 'admin.permissions.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Permissions',
+                'name' => 'Permissions Create',
+                'route' => 'admin.permissions.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Permissions',
+                'name' => 'Permissions Edit',
+                'route' => 'admin.permissions.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Permissions',
+                'name' => 'Permissions Delete',
+                'route' => 'admin.permissions.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Leads',
+                'name' => 'Leads View',
+                'route' => 'admin.leads.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Leads',
+                'name' => 'Leads Create',
+                'route' => 'admin.leads.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Leads',
+                'name' => 'Leads Edit',
+                'route' => 'admin.leads.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Leads',
+                'name' => 'Leads Delete',
+                'route' => 'admin.leads.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Clients',
+                'name' => 'Clients View',
+                'route' => 'admin.clients.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Clients',
+                'name' => 'Clients Create',
+                'route' => 'admin.clients.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Clients',
+                'name' => 'Clients Edit',
+                'route' => 'admin.clients.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Clients',
+                'name' => 'Clients Delete',
+                'route' => 'admin.clients.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Follow Ups',
+                'name' => 'Follow Ups View',
+                'route' => 'admin.followups.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Follow Ups',
+                'name' => 'Follow Ups Create',
+                'route' => 'admin.followups.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Follow Ups',
+                'name' => 'Follow Ups Edit',
+                'route' => 'admin.followups.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Follow Ups',
+                'name' => 'Follow Ups Delete',
+                'route' => 'admin.followups.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Projects',
+                'name' => 'Projects View',
+                'route' => 'admin.projects.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Projects',
+                'name' => 'Projects Create',
+                'route' => 'admin.projects.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Projects',
+                'name' => 'Projects Edit',
+                'route' => 'admin.projects.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Projects',
+                'name' => 'Projects Delete',
+                'route' => 'admin.projects.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Quotations',
+                'name' => 'Quotations View',
+                'route' => 'admin.quotations.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Quotations',
+                'name' => 'Quotations Create',
+                'route' => 'admin.quotations.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Quotations',
+                'name' => 'Quotations Edit',
+                'route' => 'admin.quotations.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Quotations',
+                'name' => 'Quotations Delete',
+                'route' => 'admin.quotations.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Invoices',
+                'name' => 'Invoices View',
+                'route' => 'admin.invoices.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Invoices',
+                'name' => 'Invoices Create',
+                'route' => 'admin.invoices.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Invoices',
+                'name' => 'Invoices Edit',
+                'route' => 'admin.invoices.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Invoices',
+                'name' => 'Invoices Delete',
+                'route' => 'admin.invoices.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Payments',
+                'name' => 'Payments View',
+                'route' => 'admin.payments.index',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Payments',
+                'name' => 'Payments Create',
+                'route' => 'admin.payments.create',
+                'action' => 'create',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Payments',
+                'name' => 'Payments Edit',
+                'route' => 'admin.payments.edit',
+                'action' => 'edit',
+                'position' => 3,
+                'status' => true,
+            ],
+            [
+                'module' => 'Payments',
+                'name' => 'Payments Delete',
+                'route' => 'admin.payments.destroy',
+                'action' => 'delete',
+                'position' => 4,
+                'status' => true,
+            ],
+            [
+                'module' => 'Lead Reports',
+                'name' => 'Lead Reports View',
+                'route' => 'admin.reports.leads',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Sales Reports',
+                'name' => 'Sales Reports View',
+                'route' => 'admin.reports.sales',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'User Reports',
+                'name' => 'User Reports View',
+                'route' => 'admin.reports.users',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Company Settings',
+                'name' => 'Company Settings View',
+                'route' => 'admin.settings.company',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Company Settings',
+                'name' => 'Company Settings Edit',
+                'route' => 'admin.settings.company.update',
+                'action' => 'edit',
+                'position' => 2,
+                'status' => true,
+            ],
+            [
+                'module' => 'Profile',
+                'name' => 'Profile View',
+                'route' => 'admin.profile',
+                'action' => 'view',
+                'position' => 1,
+                'status' => true,
+            ],
+            [
+                'module' => 'Profile',
+                'name' => 'Profile Edit',
+                'route' => 'admin.profile.update',
+                'action' => 'edit',
+                'position' => 2,
+                'status' => true,
+            ],
         ];
+
+        Permission::where('name', 'like', '%.%')->delete();
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission,
-                'guard_name' => 'web',
-            ]);
+            Permission::updateOrCreate(
+                [
+                    'name' => $permission['name'],
+                    'guard_name' => 'web',
+                ],
+                [
+                    'module' => $permission['module'],
+                    'route' => $permission['route'],
+                    'action' => $permission['action'],
+                    'position' => $permission['position'],
+                    'status' => $permission['status'],
+                ]
+            );
         }
 
-        $roles = [
-            'Super Admin',
-            'Admin',
-            'Sales Manager',
-            'Sales Executive',
-            'Accountant',
-            'HR',
-            'Support Executive',
-            'Developer',
-            'Client',
-        ];
-
-        foreach ($roles as $role) {
-            Role::firstOrCreate([
-                'name' => $role,
-                'guard_name' => 'web',
-            ]);
-        }
-
-        $superAdmin = Role::findByName('Super Admin', 'web');
-        $superAdmin->syncPermissions(Permission::all());
-
-        $admin = Role::findByName('Admin', 'web');
-        $admin->syncPermissions(Permission::all());
-
-        $salesManager = Role::findByName('Sales Manager', 'web');
-        $salesManager->syncPermissions([
-            'dashboard.view',
-            'leads.view',
-            'leads.create',
-            'leads.edit',
-            'leads.delete',
-            'leads.status',
-            'leads.import',
-            'clients.view',
-            'clients.create',
-            'clients.edit',
-            'clients.status',
-            'clients.import',
-            'followups.view',
-            'followups.create',
-            'followups.edit',
-            'projects.view',
-            'projects.create',
-            'projects.edit',
-            'quotations.view',
-            'quotations.create',
-            'quotations.edit',
-            'invoices.view',
-            'payments.view',
-            'reports.leads',
-            'reports.sales',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $salesExecutive = Role::findByName('Sales Executive', 'web');
-        $salesExecutive->syncPermissions([
-            'dashboard.view',
-            'leads.view',
-            'leads.create',
-            'leads.edit',
-            'leads.status',
-            'clients.view',
-            'clients.create',
-            'clients.edit',
-            'followups.view',
-            'followups.create',
-            'followups.edit',
-            'projects.view',
-            'quotations.view',
-            'quotations.create',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $accountant = Role::findByName('Accountant', 'web');
-        $accountant->syncPermissions([
-            'dashboard.view',
-            'clients.view',
-            'invoices.view',
-            'invoices.create',
-            'invoices.edit',
-            'payments.view',
-            'payments.create',
-            'payments.edit',
-            'reports.sales',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $hr = Role::findByName('HR', 'web');
-        $hr->syncPermissions([
-            'dashboard.view',
-            'users.view',
-            'users.create',
-            'users.edit',
-            'users.status',
-            'reports.users',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $support = Role::findByName('Support Executive', 'web');
-        $support->syncPermissions([
-            'dashboard.view',
-            'clients.view',
-            'leads.view',
-            'followups.view',
-            'followups.create',
-            'followups.edit',
-            'projects.view',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $developer = Role::findByName('Developer', 'web');
-        $developer->syncPermissions([
-            'dashboard.view',
-            'projects.view',
-            'projects.create',
-            'projects.edit',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        $client = Role::findByName('Client', 'web');
-        $client->syncPermissions([
-            'dashboard.view',
-            'projects.view',
-            'invoices.view',
-            'payments.view',
-            'profile.view',
-            'profile.edit',
-        ]);
-
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        $this->command->info('Roles and permissions created successfully.');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

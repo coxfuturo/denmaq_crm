@@ -1,4 +1,14 @@
 function confirmAlert(message, callback) {
+    if (typeof swal !== "function") {
+        console.error("SweetAlert is not loaded.");
+
+        if (typeof callback === "function") {
+            callback();
+        }
+
+        return false;
+    }
+
     swal({
         title: "Are you sure?",
         text: message || "Are you sure you want to continue?",
@@ -6,11 +16,13 @@ function confirmAlert(message, callback) {
         buttons: {
             cancel: {
                 text: "Cancel",
-                visible: true
+                visible: true,
+                closeModal: true
             },
             confirm: {
                 text: "Yes, continue",
-                className: "btn-danger"
+                className: "btn-danger",
+                closeModal: true
             }
         },
         dangerMode: true
@@ -21,6 +33,21 @@ function confirmAlert(message, callback) {
     });
 
     return false;
+}
+
+function logoutConfirm() {
+    return confirmAlert(
+        "Are you sure you want to logout?",
+        function() {
+            let form = document.getElementById("logoutForm");
+
+            if (form) {
+                form.submit();
+            } else {
+                console.error("Logout form not found.");
+            }
+        }
+        );
 }
 
 function showToast(message, type) {
@@ -40,19 +67,13 @@ function showToast(message, type) {
     if (type === "success") {
         bgClass = "bg-success";
         title = "Success!";
-    }
-
-    if (type === "error") {
+    } else if (type === "error") {
         bgClass = "bg-danger";
         title = "Error!";
-    }
-
-    if (type === "warning") {
+    } else if (type === "warning") {
         bgClass = "bg-warning";
         title = "Warning!";
-    }
-
-    if (type === "info") {
+    } else if (type === "info") {
         bgClass = "bg-info";
         title = "Information";
     }
@@ -64,68 +85,91 @@ function showToast(message, type) {
     toast.setAttribute("aria-live", "assertive");
     toast.setAttribute("aria-atomic", "true");
 
-    toast.innerHTML = `
-        <div class="toast-header ${bgClass} text-white border-0">
-            <strong class="me-auto">${title}</strong>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body">
-            ${message || ""}
-        </div>
-    `;
+    toast.innerHTML =
+    '<div class="toast-header ' + bgClass + ' text-white border-0">' +
+    '<strong class="me-auto">' + escapeJsHtml(title) + '</strong>' +
+    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>' +
+    '</div>' +
+    '<div class="toast-body">' +
+    escapeJsHtml(message || "") +
+    '</div>';
 
     container.appendChild(toast);
 
-    if (typeof bootstrap !== "undefined" && bootstrap.Toast) {
+    if (
+        typeof bootstrap !== "undefined" &&
+        bootstrap.Toast
+        ) {
         let bsToast = new bootstrap.Toast(toast, {
             delay: 3000,
             autohide: true
         });
 
-        bsToast.show();
+    bsToast.show();
 
-        toast.addEventListener("hidden.bs.toast", function() {
-            toast.remove();
-        });
-    } else {
-        console.error("Bootstrap Toast is not loaded.");
-        toast.style.display = "block";
+    toast.addEventListener("hidden.bs.toast", function() {
+        toast.remove();
+    });
+} else {
+    console.error("Bootstrap Toast is not loaded.");
 
-        setTimeout(function() {
-            toast.remove();
-        }, 3000);
-    }
+    toast.style.display = "block";
+
+    setTimeout(function() {
+        toast.remove();
+    }, 3000);
+}
+}
+
+function escapeJsHtml(value) {
+    return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function successAlert(message) {
     showToast(
         message || "Action completed successfully.",
         "success"
-    );
+        );
 }
 
 function errorAlert(message) {
     showToast(
         message || "Something went wrong.",
         "error"
-    );
+        );
 }
 
 function warningAlert(message) {
     showToast(
         message || "Please check your action.",
         "warning"
-    );
+        );
 }
 
 function infoAlert(message) {
     showToast(
         message || "Information",
         "info"
-    );
+        );
 }
 
 function confirmForm(form, message) {
+    if (!form) {
+        console.error("Form not found.");
+        return false;
+    }
+
+    if (typeof swal !== "function") {
+        console.error("SweetAlert is not loaded.");
+        form.submit();
+        return false;
+    }
+
     swal({
         title: "Are you sure?",
         text: message || "Are you sure you want to continue?",
@@ -133,11 +177,13 @@ function confirmForm(form, message) {
         buttons: {
             cancel: {
                 text: "Cancel",
-                visible: true
+                visible: true,
+                closeModal: true
             },
             confirm: {
                 text: "Yes, continue",
-                className: "btn-danger"
+                className: "btn-danger",
+                closeModal: true
             }
         },
         dangerMode: true
@@ -150,11 +196,25 @@ function confirmForm(form, message) {
     return false;
 }
 
-function deleteConfirm(form) {
+function deleteConfirm(form, message) {
     return confirmForm(
         form,
-        "This role will be moved to trash."
-    );
+        message || "This record will be moved to trash."
+        );
+}
+
+function forceDeleteConfirm(form, message) {
+    return confirmForm(
+        form,
+        message || "This record will be permanently deleted. This action cannot be undone."
+        );
+}
+
+function restoreConfirm(form, message) {
+    return confirmForm(
+        form,
+        message || "This record will be restored from trash."
+        );
 }
 
 function ajaxError(xhr) {
@@ -162,11 +222,28 @@ function ajaxError(xhr) {
 
     let message = "Something went wrong.";
 
-    if (xhr.responseJSON && xhr.responseJSON.message) {
+    if (
+        xhr &&
+        xhr.responseJSON &&
+        xhr.responseJSON.message
+        ) {
         message = xhr.responseJSON.message;
-    }
+} else if (
+    xhr &&
+    xhr.responseText
+    ) {
+    try {
+        let response = JSON.parse(xhr.responseText);
 
-    errorAlert(message);
+        if (response.message) {
+            message = response.message;
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+errorAlert(message);
 }
 
 function changePosition(id, type) {
@@ -181,19 +258,19 @@ function changePosition(id, type) {
 
     if (type === "up") {
         newPosition = currentPosition + 1;
-    }
-
-    if (type === "down") {
+    } else if (type === "down") {
         if (currentPosition <= 0) {
             return;
         }
 
         newPosition = currentPosition - 1;
+    } else {
+        return;
     }
 
     let csrf = document.querySelector(
         'meta[name="csrf-token"]'
-    );
+        );
 
     if (!csrf) {
         errorAlert("CSRF token not found.");
@@ -215,7 +292,7 @@ function changePosition(id, type) {
         if (!response.ok) {
             throw new Error(
                 "HTTP error " + response.status
-            );
+                );
         }
 
         return response.json();
@@ -226,7 +303,7 @@ function changePosition(id, type) {
 
             successAlert(
                 data.message || "Position updated successfully."
-            );
+                );
 
             setTimeout(function() {
                 location.reload();
@@ -234,7 +311,7 @@ function changePosition(id, type) {
         } else {
             errorAlert(
                 data.message || "Position update failed."
-            );
+                );
         }
     })
     .catch(function(error) {
@@ -242,36 +319,43 @@ function changePosition(id, type) {
 
         errorAlert(
             "Something went wrong while updating position."
-        );
+            );
     });
 }
 
-function toggleStatus(element, url) {
+function toggleStatus(element, url, message) {
     let checkbox = element;
+
+    if (!checkbox) {
+        return false;
+    }
+
     let oldStatus = !checkbox.checked;
     let newStatus = checkbox.checked ? "Active" : "Inactive";
 
     if (typeof swal !== "function") {
-        errorAlert("SweetAlert is not loaded.");
+        console.error("SweetAlert is not loaded.");
         checkbox.checked = oldStatus;
         return false;
     }
 
     swal({
         title: "Are you sure?",
-        text: "Do you want to change role status to " + newStatus + "?",
+        text: message || "Do you want to change status to " + newStatus + "?",
         icon: "warning",
         buttons: {
             cancel: {
                 text: "Cancel",
-                visible: true
+                visible: true,
+                closeModal: true
             },
             confirm: {
                 text: "Yes, change it",
-                className: "btn-primary"
+                className: "btn-primary",
+                closeModal: true
             }
         },
-        dangerMode: true
+        dangerMode: false
     }).then(function(confirmed) {
         if (confirmed) {
             window.location.href = url;
@@ -286,7 +370,7 @@ function toggleStatus(element, url) {
 function openTableJs(id) {
     let currentTable = document.getElementById(
         "openTable" + id
-    );
+        );
 
     if (!currentTable) {
         return;
@@ -294,21 +378,35 @@ function openTableJs(id) {
 
     document.querySelectorAll(
         ".permission-row"
-    ).forEach(function(row) {
-        row.classList.add("d-none");
-    });
+        ).forEach(function(row) {
+            row.classList.add("d-none");
+        });
 
-    if (currentTable.classList.contains("d-none")) {
-        currentTable.classList.remove("d-none");
+        if (currentTable.classList.contains("d-none")) {
+            currentTable.classList.remove("d-none");
+        }
     }
-}
 
-const status = document.getElementById('status');
-const statusText = document.getElementById('statusText');
+    document.addEventListener("DOMContentLoaded", function() {
+        const status = document.getElementById("status");
+        const statusText = document.getElementById("statusText");
 
-function updateStatusText() {
-statusText.textContent = status.checked ? 'ON' : 'OFF';
-}
+        function updateStatusText() {
+            if (!status || !statusText) {
+                return;
+            }
 
-status.addEventListener('change', updateStatusText);
-updateStatusText();
+            statusText.textContent = status.checked
+            ? "ON"
+            : "OFF";
+        }
+
+        if (status && statusText) {
+            status.addEventListener(
+                "change",
+                updateStatusText
+                );
+
+            updateStatusText();
+        }
+    });

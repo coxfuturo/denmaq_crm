@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,128 +17,131 @@
     <link rel="stylesheet" href="{{ asset('assets/css/role.css') }}">
 
     @stack('styles')
+    
 </head>
 
 <body>
 
-<div class="admin-shell">
+    <div class="admin-shell">
 
-    <div class="sidebar-backdrop" data-sidebar-close></div>
+        <div class="sidebar-backdrop" data-sidebar-close></div>
 
-    @include('admin.layout.sidebar')
+        @include('admin.layout.sidebar')
 
-    <div class="admin-main">
+        <div class="admin-main">
 
-        @include('admin.layout.header')
+            @include('admin.layout.header')
 
-        <main class="dashboard-content">
-            @yield('content')
-        </main>
+            <main class="dashboard-content">
+                @yield('content')
+            </main>
 
-        @include('admin.layout.footer')
+            @include('admin.layout.footer')
 
+        </div>
+        
     </div>
 
-</div>
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
 
-<script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}"></script>
 
-<script src="https://unpkg.com/feather-icons"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
 
-<script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
 
-document.addEventListener('DOMContentLoaded', function () {
+    <script>
 
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
+        document.addEventListener('DOMContentLoaded', function () {
 
-    @if(session('success'))
-        showToast(
-            @json(session('success')),
-            'success'
-        );
-    @endif
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
 
-    @if(session('error'))
-        showToast(
-            @json(session('error')),
-            'error'
-        );
-    @endif
+            @if(session('success'))
+            showToast(
+                @json(session('success')),
+                'success'
+                );
+            @endif
 
-    @if(session('warning'))
-        showToast(
-            @json(session('warning')),
-            'warning'
-        );
-    @endif
+            @if(session('error'))
+            showToast(
+                @json(session('error')),
+                'error'
+                );
+            @endif
 
-    @if(session('info'))
-        showToast(
-            @json(session('info')),
-            'info'
-        );
-    @endif
+            @if(session('warning'))
+            showToast(
+                @json(session('warning')),
+                'warning'
+                );
+            @endif
 
-});
+            @if(session('info'))
+            showToast(
+                @json(session('info')),
+                'info'
+                );
+            @endif
 
-function showToast(message, type) {
+        });
 
-    let container = document.getElementById('toastContainer');
+        function showToast(message, type) {
 
-    if (!container) {
+            let container = document.getElementById('toastContainer');
 
-        container = document.createElement('div');
+            if (!container) {
 
-        container.id = 'toastContainer';
+                container = document.createElement('div');
 
-        container.className =
-            'toast-container position-fixed top-0 end-0 p-3';
+                container.id = 'toastContainer';
 
-        container.style.zIndex = '9999';
+                container.className =
+                'toast-container position-fixed top-0 end-0 p-3';
 
-        document.body.appendChild(container);
-    }
+                container.style.zIndex = '9999';
 
-    let bgClass = 'bg-primary';
-    let title = 'Information';
+                document.body.appendChild(container);
+            }
 
-    if (type === 'success') {
+            let bgClass = 'bg-primary';
+            let title = 'Information';
 
-        bgClass = 'bg-success';
-        title = 'Success!';
+            if (type === 'success') {
 
-    } else if (type === 'error') {
+                bgClass = 'bg-success';
+                title = 'Success!';
 
-        bgClass = 'bg-danger';
-        title = 'Error!';
+            } else if (type === 'error') {
 
-    } else if (type === 'warning') {
+                bgClass = 'bg-danger';
+                title = 'Error!';
 
-        bgClass = 'bg-warning';
-        title = 'Warning!';
+            } else if (type === 'warning') {
 
-    } else if (type === 'info') {
+                bgClass = 'bg-warning';
+                title = 'Warning!';
 
-        bgClass = 'bg-info';
-        title = 'Information';
-    }
+            } else if (type === 'info') {
 
-    let toast = document.createElement('div');
+                bgClass = 'bg-info';
+                title = 'Information';
+            }
 
-    toast.className =
-        'toast ' +
-        bgClass +
-        ' text-white border-0 mb-2';
+            let toast = document.createElement('div');
 
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
+            toast.className =
+            'toast ' +
+            bgClass +
+            ' text-white border-0 mb-2';
 
-    toast.innerHTML = `
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+
+            toast.innerHTML = `
         <div class="toast-header ${bgClass} text-white border-0">
             <strong class="me-auto">${title}</strong>
 
@@ -151,270 +155,306 @@ function showToast(message, type) {
         <div class="toast-body">
             ${message || ''}
         </div>
-    `;
+            `;
 
-    container.appendChild(toast);
+            container.appendChild(toast);
 
-    if (
-        typeof bootstrap !== 'undefined' &&
-        bootstrap.Toast
-    ) {
+            if (
+                typeof bootstrap !== 'undefined' &&
+                bootstrap.Toast
+                ) {
 
-        let bsToast = new bootstrap.Toast(toast, {
-            delay: 3000,
-            autohide: true
-        });
+                let bsToast = new bootstrap.Toast(toast, {
+                    delay: 3000,
+                    autohide: true
+                });
 
-        bsToast.show();
+            bsToast.show();
 
-        toast.addEventListener(
-            'hidden.bs.toast',
-            function () {
+            toast.addEventListener(
+                'hidden.bs.toast',
+                function () {
+                    toast.remove();
+                }
+                );
+
+        } else {
+
+            toast.style.display = 'block';
+
+            setTimeout(function () {
                 toast.remove();
-            }
-        );
-
-    } else {
-
-        toast.style.display = 'block';
-
-        setTimeout(function () {
-            toast.remove();
-        }, 3000);
+            }, 3000);
+        }
     }
-}
 
-function successAlert(message) {
+    function successAlert(message) {
 
-    showToast(
-        message || 'Action completed successfully.',
-        'success'
-    );
-}
+        showToast(
+            message || 'Action completed successfully.',
+            'success'
+            );
+    }
 
-function errorAlert(message) {
+    function errorAlert(message) {
 
-    showToast(
-        message || 'Something went wrong.',
-        'error'
-    );
-}
+        showToast(
+            message || 'Something went wrong.',
+            'error'
+            );
+    }
 
-function warningAlert(message) {
+    function warningAlert(message) {
 
-    showToast(
-        message || 'Please check your action.',
-        'warning'
-    );
-}
+        showToast(
+            message || 'Please check your action.',
+            'warning'
+            );
+    }
 
-function infoAlert(message) {
+    function infoAlert(message) {
 
-    showToast(
-        message || 'Information',
-        'info'
-    );
-}
+        showToast(
+            message || 'Information',
+            'info'
+            );
+    }
 
-function confirmAlert(message, callback) {
+    function confirmAlert(message, callback) {
 
-    swal({
-        title: 'Are you sure?',
-        text: message || 'Are you sure you want to continue?',
-        icon: 'warning',
+        if (typeof swal !== 'function') {
 
-        buttons: {
-            cancel: {
-                text: 'Cancel',
-                visible: true
+            console.error('SweetAlert is not loaded.');
+
+            return false;
+        }
+
+        swal({
+            title: 'Are you sure?',
+            text: message || 'Are you sure you want to continue?',
+            icon: 'warning',
+
+            buttons: {
+                cancel: {
+                    text: 'Cancel',
+                    visible: true
+                },
+
+                confirm: {
+                    text: 'Yes, continue',
+                    className: 'btn-danger'
+                }
             },
 
-            confirm: {
-                text: 'Yes, continue',
-                className: 'btn-danger'
-            }
-        },
+            dangerMode: true
 
-        dangerMode: true
+        }).then(function (confirmed) {
 
-    }).then(function (confirmed) {
+            if (
+                confirmed &&
+                typeof callback === 'function'
+                ) {
 
-        if (
-            confirmed &&
-            typeof callback === 'function'
-        ) {
-            callback();
+                callback();
         }
 
     });
 
-    return false;
-}
-
-function confirmForm(form, message) {
-
-    if (
-        typeof swal !== 'function'
-    ) {
-
-        form.submit();
-
         return false;
     }
 
-    swal({
+    function logoutConfirm() {
 
-        title: 'Are you sure?',
+        return confirmAlert(
+            'Are you sure you want to logout?',
+            function () {
 
-        text:
+                let form = document.getElementById('logoutForm');
+
+                if (form) {
+
+                    form.submit();
+
+                } else {
+
+                    console.error('Logout form not found.');
+                }
+            }
+            );
+    }
+
+    function confirmForm(form, message) {
+
+        if (
+            typeof swal !== 'function'
+            ) {
+
+            if (form) {
+                form.submit();
+            }
+
+            return false;
+        }
+
+        swal({
+
+            title: 'Are you sure?',
+
+            text:
             message ||
             'Are you sure you want to continue?',
 
-        icon: 'warning',
+            icon: 'warning',
 
-        buttons: {
+            buttons: {
 
-            cancel: {
-                text: 'Cancel',
-                visible: true
+                cancel: {
+                    text: 'Cancel',
+                    visible: true
+                },
+
+                confirm: {
+                    text: 'Yes, continue',
+                    className: 'btn-danger'
+                }
             },
 
-            confirm: {
-                text: 'Yes, continue',
-                className: 'btn-danger'
+            dangerMode: true
+
+        }).then(function (confirmed) {
+
+            if (confirmed && form) {
+
+                form.submit();
             }
-        },
 
-        dangerMode: true
-
-    }).then(function (confirmed) {
-
-        if (confirmed) {
-            form.submit();
-        }
-
-    });
-
-    return false;
-}
-
-function deleteConfirm(
-    form,
-    message = 'This record will be moved to trash.'
-) {
-
-    return confirmForm(
-        form,
-        message
-    );
-}
-
-function restoreConfirm(
-    form,
-    message = 'This record will be restored.'
-) {
-
-    return confirmForm(
-        form,
-        message
-    );
-}
-
-function permanentDeleteConfirm(
-    form,
-    message = 'This record will be permanently deleted. This action cannot be undone.'
-) {
-
-    if (
-        typeof swal !== 'function'
-    ) {
-
-        form.submit();
+        });
 
         return false;
     }
 
-    swal({
+    function deleteConfirm(
+        form,
+        message = 'This record will be moved to trash.'
+        ) {
 
-        title: 'Are you sure?',
+        return confirmForm(
+            form,
+            message
+            );
+    }
 
-        text: message,
+    function restoreConfirm(
+        form,
+        message = 'This record will be restored.'
+        ) {
 
-        icon: 'warning',
+        return confirmForm(
+            form,
+            message
+            );
+    }
 
-        buttons: {
+    function permanentDeleteConfirm(
+        form,
+        message = 'This record will be permanently deleted. This action cannot be undone.'
+        ) {
 
-            cancel: {
-                text: 'Cancel',
-                visible: true
+        if (
+            typeof swal !== 'function'
+            ) {
+
+            if (form) {
+                form.submit();
+            }
+
+            return false;
+        }
+
+        swal({
+
+            title: 'Are you sure?',
+
+            text: message,
+
+            icon: 'warning',
+
+            buttons: {
+
+                cancel: {
+                    text: 'Cancel',
+                    visible: true
+                },
+
+                confirm: {
+                    text: 'Yes, delete permanently',
+                    className: 'btn-danger'
+                }
             },
 
-            confirm: {
-                text: 'Yes, delete permanently',
-                className: 'btn-danger'
+            dangerMode: true
+
+        }).then(function (confirmed) {
+
+            if (confirmed && form) {
+
+                form.submit();
             }
-        },
 
-        dangerMode: true
+        });
 
-    }).then(function (confirmed) {
+        return false;
+    }
 
-        if (confirmed) {
-            form.submit();
-        }
+    function statusConfirm(
+        url,
+        status,
+        type = 'record'
+        ) {
 
-    });
-
-    return false;
-}
-
-function statusConfirm(
-    url,
-    status,
-    type = 'record'
-) {
-
-    let statusText =
+        let statusText =
         status
-            ? 'Activate'
-            : 'Deactivate';
+        ? 'Activate'
+        : 'Deactivate';
 
-    return confirmAlert(
-        'Do you want to ' +
-        statusText.toLowerCase() +
-        ' this ' +
-        type +
-        '?',
+        return confirmAlert(
 
-        function () {
-            window.location.href = url;
-        }
-    );
-}
+            'Do you want to ' +
+            statusText.toLowerCase() +
+            ' this ' +
+            type +
+            '?',
 
-function toggleStatus(
-    element,
-    url,
-    type = 'record'
-) {
+            function () {
 
-    let checkbox = element;
+                window.location.href = url;
+            }
+            );
+    }
 
-    let oldStatus =
+    function toggleStatus(
+        element,
+        url,
+        type = 'record'
+        ) {
+
+        let checkbox = element;
+
+        let oldStatus =
         !checkbox.checked;
 
-    let newStatus =
+        let newStatus =
         checkbox.checked
-            ? 'Active'
-            : 'Inactive';
+        ? 'Active'
+        : 'Inactive';
 
-    if (
-        typeof swal !== 'function'
-    ) {
+        if (
+            typeof swal !== 'function'
+            ) {
 
-        errorAlert(
-            'SweetAlert is not loaded.'
-        );
+            errorAlert(
+                'SweetAlert is not loaded.'
+                );
 
         checkbox.checked = oldStatus;
 
@@ -426,11 +466,11 @@ function toggleStatus(
         title: 'Are you sure?',
 
         text:
-            'Do you want to change ' +
-            type +
-            ' status to ' +
-            newStatus +
-            '?',
+        'Do you want to change ' +
+        type +
+        ' status to ' +
+        newStatus +
+        '?',
 
         icon: 'warning',
 
@@ -470,25 +510,25 @@ function ajaxError(xhr) {
     console.error(xhr);
 
     let message =
-        'Something went wrong.';
+    'Something went wrong.';
 
     if (
         xhr.responseJSON &&
         xhr.responseJSON.message
-    ) {
+        ) {
 
         message =
-            xhr.responseJSON.message;
-    }
+    xhr.responseJSON.message;
+}
 
-    errorAlert(message);
+errorAlert(message);
 }
 
 function changePosition(id, type) {
 
     let input =
-        document.getElementById(
-            'position' + id
+    document.getElementById(
+        'position' + id
         );
 
     if (!input) {
@@ -496,15 +536,15 @@ function changePosition(id, type) {
     }
 
     let currentPosition =
-        parseInt(input.value) || 0;
+    parseInt(input.value) || 0;
 
     let newPosition =
-        currentPosition;
+    currentPosition;
 
     if (type === 'up') {
 
         newPosition =
-            currentPosition + 1;
+        currentPosition + 1;
     }
 
     if (type === 'down') {
@@ -514,19 +554,19 @@ function changePosition(id, type) {
         }
 
         newPosition =
-            currentPosition - 1;
+        currentPosition - 1;
     }
 
     let csrf =
-        document.querySelector(
-            'meta[name="csrf-token"]'
+    document.querySelector(
+        'meta[name="csrf-token"]'
         );
 
     if (!csrf) {
 
         errorAlert(
             'CSRF token not found.'
-        );
+            );
 
         return;
     }
@@ -540,14 +580,14 @@ function changePosition(id, type) {
 
             headers: {
                 'Content-Type':
-                    'application/json',
+                'application/json',
 
                 'Accept':
-                    'application/json',
+                'application/json',
 
                 'X-CSRF-TOKEN':
-                    csrf.getAttribute(
-                        'content'
+                csrf.getAttribute(
+                    'content'
                     )
             },
 
@@ -555,7 +595,7 @@ function changePosition(id, type) {
                 position: newPosition
             })
         }
-    )
+        )
     .then(function (response) {
 
         if (!response.ok) {
@@ -563,7 +603,7 @@ function changePosition(id, type) {
             throw new Error(
                 'HTTP error ' +
                 response.status
-            );
+                );
         }
 
         return response.json();
@@ -573,12 +613,12 @@ function changePosition(id, type) {
         if (data.success) {
 
             input.value =
-                data.position;
+            data.position;
 
             successAlert(
                 data.message ||
                 'Position updated successfully.'
-            );
+                );
 
             setTimeout(function () {
 
@@ -591,8 +631,9 @@ function changePosition(id, type) {
             errorAlert(
                 data.message ||
                 'Position update failed.'
-            );
+                );
         }
+
     })
     .catch(function (error) {
 
@@ -600,15 +641,15 @@ function changePosition(id, type) {
 
         errorAlert(
             'Something went wrong while updating position.'
-        );
+            );
     });
 }
 
 function openTableJs(id) {
 
     let currentTable =
-        document.getElementById(
-            'openTable' + id
+    document.getElementById(
+        'openTable' + id
         );
 
     if (!currentTable) {
@@ -616,26 +657,26 @@ function openTableJs(id) {
     }
 
     document
-        .querySelectorAll(
-            '.permission-row'
+    .querySelectorAll(
+        '.permission-row'
         )
-        .forEach(function (row) {
+    .forEach(function (row) {
 
-            row.classList.add(
-                'd-none'
+        row.classList.add(
+            'd-none'
             );
-        });
+    });
 
     if (
         currentTable.classList.contains(
             'd-none'
-        )
-    ) {
+            )
+        ) {
 
         currentTable.classList.remove(
             'd-none'
-        );
-    }
+            );
+}
 }
 
 </script>

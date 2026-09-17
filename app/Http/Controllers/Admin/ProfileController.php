@@ -4,171 +4,163 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProfileController extends Controller
 {
-    /**
-     * Show admin profile.
-     */
-    public function index()
+    public function edit()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        return view('admin.profile', compact('user'));
+        return view('admin.profile.edit', compact('user'));
     }
 
-    /**
-     * Update admin profile.
-     */
     public function update(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Server-Side Validation
-        |--------------------------------------------------------------------------
-        */
+        try {
 
-        $validated = $request->validate([
-            'first_name' => [
-                'required',
-                'string',
-                'min:2',
-                'max:50',
-                'regex:/^[A-Za-z\s]+$/',
-            ],
+            $validated = $request->validate(
+                [
+                    'first_name' => [
+                        'required',
+                        'string',
+                        'max:100',
+                    ],
+                    'last_name' => [
+                        'required',
+                        'string',
+                        'max:100',
+                    ],
+                    'email' => [
+                        'required',
+                        'email',
+                        'max:255',
+                        Rule::unique('users', 'email')->ignore($user->id),
+                    ],
+                    'mobile' => [
+                        'required',
+                        'string',
+                        'max:20',
+                    ],
+                    'company_name' => [
+                        'required',
+                        'string',
+                        'max:255',
+                    ],
+                    'profile_image' => [
+                        'nullable',
+                        'image',
+                        'mimes:jpg,jpeg,png,webp',
+                        'max:2048',
+                    ],
+                    'password' => [
+                        'nullable',
+                        'string',
+                        'min:8',
+                        'confirmed',
+                    ],
+                ],
+                [
+                    'first_name.required' => 'First name is required.',
+                    'first_name.max' => 'First name cannot exceed 100 characters.',
+                    'last_name.required' => 'Last name is required.',
+                    'last_name.max' => 'Last name cannot exceed 100 characters.',
+                    'email.required' => 'Email address is required.',
+                    'email.email' => 'Please enter a valid email address.',
+                    'email.unique' => 'This email address is already registered.',
+                    'mobile.required' => 'Mobile number is required.',
+                    'mobile.max' => 'Mobile number cannot exceed 20 characters.',
+                    'company_name.required' => 'Company name is required.',
+                    'profile_image.image' => 'The selected file must be an image.',
+                    'profile_image.mimes' => 'Profile image must be JPG, JPEG, PNG or WEBP.',
+                    'profile_image.max' => 'Profile image cannot be larger than 2 MB.',
+                    'password.min' => 'Password must be at least 8 characters.',
+                    'password.confirmed' => 'Password confirmation does not match.',
+                ]
+            );
 
-            'last_name' => [
-                'nullable',
-                'string',
-                'min:2',
-                'max:50',
-                'regex:/^[A-Za-z\s]+$/',
-            ],
+            $firstName = trim($validated['first_name']);
+            $lastName = trim($validated['last_name']);
+            $email = trim($validated['email']);
+            $mobile = trim($validated['mobile']);
+            $companyName = trim($validated['company_name']);
 
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                'unique:users,email,' . $user->id,
-            ],
+            $hasTextChanges =
+            $user->first_name !== $firstName ||
+            $user->last_name !== $lastName ||
+            $user->email !== $email ||
+            ($user->mobile ?? '') !== $mobile ||
+            ($user->company_name ?? '') !== $companyName;
 
-            'mobile' => [
-                'nullable',
-                'regex:/^[0-9]{10,13}$/',
-            ],
+            $hasPasswordChange = $request->filled('password');
 
-            'profile_image' => [
-                'nullable',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
+            $hasImageChange = $request->hasFile('profile_image');
 
-            'password' => [
-                'nullable',
-                'string',
-                'min:8',
-                'max:255',
-                'confirmed',
-            ],
-        ], [
-            /*
-            |--------------------------------------------------------------------------
-            | Custom Validation Messages
-            |--------------------------------------------------------------------------
-            */
-
-            'first_name.required' => 'First name is required.',
-            'first_name.string' => 'First name must be a valid text.',
-            'first_name.min' => 'First name must be at least 2 characters.',
-            'first_name.max' => 'First name cannot be more than 50 characters.',
-            'first_name.regex' => 'First name may contain only letters and spaces.',
-
-            'last_name.string' => 'Last name must be a valid text.',
-            'last_name.min' => 'Last name must be at least 2 characters.',
-            'last_name.max' => 'Last name cannot be more than 50 characters.',
-            'last_name.regex' => 'Last name may contain only letters and spaces.',
-
-            'email.required' => 'Email address is required.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.max' => 'Email address cannot be more than 255 characters.',
-            'email.unique' => 'This email address is already in use.',
-
-            'mobile.regex' => 'Mobile number must contain 10 to 13 digits.',
-
-            'profile_image.file' => 'Please upload a valid file.',
-            'profile_image.image' => 'Profile image must be a valid image.',
-            'profile_image.mimes' => 'Profile image must be JPG, JPEG, PNG, or WEBP.',
-            'profile_image.max' => 'Profile image cannot be larger than 2 MB.',
-
-            'password.min' => 'Password must be at least 8 characters.',
-            'password.max' => 'Password cannot be more than 255 characters.',
-            'password.confirmed' => 'Password confirmation does not match.',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Basic Information
-        |--------------------------------------------------------------------------
-        */
-
-        $user->first_name = $validated['first_name'];
-        $user->last_name = $validated['last_name'] ?? null;
-        $user->email = $validated['email'];
-        $user->mobile = $validated['mobile'] ?? null;
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Image
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->hasFile('profile_image')) {
-
-            // Delete old profile image
-            if ($user->profile_image) {
-                Storage::disk('public')->delete(
-                    $user->profile_image
-                );
+            if (
+                !$hasTextChanges &&
+                !$hasPasswordChange &&
+                !$hasImageChange
+            ) {
+                return redirect()
+                ->route('admin.profile.edit')
+                ->with('warning', 'No changes found. Please update at least one field.');
             }
 
-            // Store new profile image
-            $user->profile_image = $request
+            $oldImage = $user->profile_image;
+            $newImage = null;
+
+            if ($hasImageChange) {
+                $newImage = $request
                 ->file('profile_image')
                 ->store('profiles', 'public');
+
+                if (!$newImage) {
+                    return redirect()
+                    ->route('admin.profile.edit')
+                    ->with('error', 'Profile image could not be uploaded. Please try again.');
+                }
+            }
+
+            $user->first_name = $firstName;
+            $user->last_name = $lastName;
+            $user->email = $email;
+            $user->mobile = $mobile;
+            $user->company_name = $companyName;
+
+            if ($hasImageChange) {
+                $user->profile_image = $newImage;
+            }
+
+            if ($hasPasswordChange) {
+                $user->password = Hash::make($validated['password']);
+            }
+
+            $user->save();
+
+            if (
+                $hasImageChange &&
+                $oldImage &&
+                $oldImage !== $newImage &&
+                Storage::disk('public')->exists($oldImage)
+            ) {
+                Storage::disk('public')->delete($oldImage);
+            }
+
+            return redirect()
+            ->route('admin.profile.edit')
+            ->with('success', 'Profile updated successfully.');
+
+        } catch (Throwable $e) {
+            return redirect()
+            ->route('admin.profile.edit')
+            ->withInput()
+            ->with('error', 'Unable to update profile. Please try again.');
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Password
-        |--------------------------------------------------------------------------
-        */
-
-        if (!empty($validated['password'])) {
-            $user->password = Hash::make(
-                $validated['password']
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Save User
-        |--------------------------------------------------------------------------
-        */
-
-        $user->save();
-
-        return redirect()
-            ->route('admin.profile')
-            ->with(
-                'success',
-                'Profile updated successfully.'
-            );
     }
 }

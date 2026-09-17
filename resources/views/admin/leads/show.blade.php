@@ -1,201 +1,292 @@
 @extends('admin.layout.app')
+
 @section('content')
 
+@php
+$user = auth()->user();
+$isSuperAdmin = $user && $user->hasRole('Super Admin');
+$canEdit = $isSuperAdmin || ($user && $user->can('Leads Edit'));
+$canDelete = $isSuperAdmin || ($user && $user->can('Leads Delete'));
+
+$statusClass = match($lead->status) {
+    'New' => 'bg-primary',
+    'Contacted' => 'bg-info text-dark',
+    'Follow Up' => 'bg-warning text-dark',
+    'Qualified' => 'bg-success',
+    'Proposal' => 'bg-secondary',
+    'Won' => 'bg-success',
+    'Lost' => 'bg-danger',
+    default => 'bg-dark'
+};
+@endphp
+
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
             <h4 class="mb-1">Lead Details</h4>
             <p class="text-muted mb-0">{{ $lead->name }}</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.leads.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i>
-                Back
-            </a>
-            <a href="{{ route('admin.leads.edit', $lead->id) }}" class="btn btn-warning">
-                <i class="bi bi-pencil"></i>
+
+        <div class="d-flex align-items-center gap-1">
+            @if($canEdit)
+            <a href="{{ route('admin.leads.edit', $lead->id) }}" class="btn btn-sm btn-warning px-2">
+                <i class="bi bi-pencil me-1"></i>
                 Edit
+            </a>
+            @endif
+
+            <a href="{{ route('admin.leads.index') }}" class="btn btn-sm btn-secondary px-2">
+                <i class="bi bi-arrow-left me-1"></i>
+                Back
             </a>
         </div>
     </div>
+
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-success py-2 px-3 mb-3">
+        {{ session('success') }}
+    </div>
     @endif
+
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-danger py-2 px-3 mb-3">
+        {{ session('error') }}
+    </div>
     @endif
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="header-title mb-0">Lead Information</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Name</div>
-                            <div class="fw-semibold">{{ $lead->name }}</div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Company Name</div>
-                            <div>{{ $lead->company_name ?: '-' }}</div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Email</div>
-                            <div>
-                                @if($lead->email)
-                                    <a href="mailto:{{ $lead->email }}">{{ $lead->email }}</a>
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Phone</div>
-                            <div>
-                                @if($lead->phone)
-                                    <a href="tel:{{ $lead->phone }}">{{ $lead->phone }}</a>
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Alternate Phone</div>
-                            <div>
-                                @if($lead->alternate_phone)
-                                    <a href="tel:{{ $lead->alternate_phone }}">{{ $lead->alternate_phone }}</a>
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Service</div>
-                            <div>{{ $lead->service ?: '-' }}</div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Source</div>
-                            <div>{{ $lead->source ?: '-' }}</div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Status</div>
-                            <div>
-                                @if($lead->status === 'New')
-                                    <span class="badge bg-primary">New</span>
-                                @elseif($lead->status === 'Contacted')
-                                    <span class="badge bg-info text-dark">Contacted</span>
-                                @elseif($lead->status === 'Follow Up')
-                                    <span class="badge bg-warning text-dark">Follow Up</span>
-                                @elseif($lead->status === 'Qualified')
-                                    <span class="badge bg-success">Qualified</span>
-                                @elseif($lead->status === 'Proposal')
-                                    <span class="badge bg-secondary">Proposal</span>
-                                @elseif($lead->status === 'Won')
-                                    <span class="badge bg-success">Won</span>
-                                @elseif($lead->status === 'Lost')
-                                    <span class="badge bg-danger">Lost</span>
-                                @else
-                                    <span class="badge bg-dark">{{ $lead->status }}</span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Follow Up Date</div>
-                            <div>
-                                @if($lead->follow_up_date)
-                                    {{ $lead->follow_up_date->format('d M Y') }}
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Budget</div>
-                            <div>
-                                @if($lead->budget !== null)
-                                    ₹{{ number_format((float) $lead->budget, 2) }}
-                                @else
-                                    -
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="text-muted small mb-1">Assigned To</div>
-                            <div>
-                                @if($lead->assignedUser)
-                                    {{ trim($lead->assignedUser->first_name . ' ' . $lead->assignedUser->last_name) }}
-                                @else
-                                    <span class="text-muted">Not Assigned</span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="text-muted small mb-1">Notes</div>
-                            <div class="border rounded p-3 bg-light">
-                                {!! nl2br(e($lead->notes ?: '-')) !!}
-                            </div>
-                        </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
+                <div>
+                    <div class="small text-muted mb-1">Lead</div>
+                    <div class="fw-bold fs-5">{{ $lead->name }}</div>
+
+                    @if($lead->company_name)
+                    <div class="small text-muted mt-1">
+                        <i class="bi bi-building me-1"></i>
+                        {{ $lead->company_name }}
                     </div>
+                    @endif
+                </div>
+
+                <div>
+                    <span class="badge {{ $statusClass }} px-2 py-1">
+                        {{ $lead->status }}
+                    </span>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="header-title mb-0">Other Information</h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <div class="text-muted small mb-1">Lead ID</div>
-                        <div class="fw-semibold">#{{ $lead->id }}</div>
+
+            <div class="row g-2">
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Email</div>
+                        @if($lead->email)
+                        <a href="mailto:{{ $lead->email }}" class="text-decoration-none fw-semibold">
+                            <i class="bi bi-envelope me-1"></i>
+                            {{ $lead->email }}
+                        </a>
+                        @else
+                        <span class="text-muted">-</span>
+                        @endif
                     </div>
-                    <div class="mb-4">
-                        <div class="text-muted small mb-1">Created By</div>
-                        <div>
-                            @if($lead->creator)
-                                {{ trim($lead->creator->first_name . ' ' . $lead->creator->last_name) }}
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Phone</div>
+                        @if($lead->phone)
+                        <a href="tel:{{ $lead->phone }}" class="text-decoration-none fw-semibold">
+                            <i class="bi bi-telephone me-1"></i>
+                            {{ $lead->phone }}
+                        </a>
+                        @else
+                        <span class="text-muted">-</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Alternate Phone</div>
+                        @if($lead->alternate_phone)
+                        <a href="tel:{{ $lead->alternate_phone }}" class="text-decoration-none fw-semibold">
+                            <i class="bi bi-telephone me-1"></i>
+                            {{ $lead->alternate_phone }}
+                        </a>
+                        @else
+                        <span class="text-muted">-</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Service</div>
+                        <div class="fw-semibold">
+                            {{ $lead->service ?: '-' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Lead Source</div>
+                        <div class="fw-semibold">
+                            {{ $lead->source ?: '-' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Assigned To</div>
+                        <div class="fw-semibold">
+                            @if($lead->assignedUser)
+                            {{ trim($lead->assignedUser->first_name . ' ' . $lead->assignedUser->last_name) }}
                             @else
-                                -
+                            <span class="text-muted">Not Assigned</span>
                             @endif
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <div class="text-muted small mb-1">Created At</div>
-                        <div>{{ $lead->created_at?->format('d M Y, h:i A') }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Follow Up Date</div>
+                        <div class="fw-semibold">
+                            @if($lead->follow_up_date)
+                            {{ $lead->follow_up_date->format('d M Y') }}
+                            @else
+                            <span class="text-muted">-</span>
+                            @endif
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-muted small mb-1">Updated At</div>
-                        <div>{{ $lead->updated_at?->format('d M Y, h:i A') }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="small text-muted mb-1">Budget</div>
+                        <div class="fw-semibold">
+                            @if($lead->budget !== null)
+                            ₹{{ number_format((float) $lead->budget, 2) }}
+                            @else
+                            <span class="text-muted">-</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-lg-8">
+
+            <div class="card h-100">
+                <div class="card-header py-2">
+                    <h5 class="header-title mb-0">
+                        <i class="bi bi-journal-text me-1"></i>
+                        Notes
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="border rounded p-3 bg-light">
+                        {!! nl2br(e($lead->notes ?: '-')) !!}
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="header-title mb-0">Actions</h4>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <h5 class="header-title mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Other Information
+                    </h5>
                 </div>
+
                 <div class="card-body">
-                    <a href="{{ route('admin.leads.edit', $lead->id) }}" class="btn btn-warning w-100 mb-2">
-                        <i class="bi bi-pencil"></i>
+
+                    <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                        <span class="small text-muted">Lead ID</span>
+                        <span class="fw-semibold">#{{ $lead->id }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between border-bottom pb-2 mb-2 gap-2">
+                        <span class="small text-muted">Created By</span>
+                        <span class="fw-semibold text-end">
+                            @if($lead->creator)
+                            {{ trim($lead->creator->first_name . ' ' . $lead->creator->last_name) }}
+                            @else
+                            -
+                            @endif
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between border-bottom pb-2 mb-2 gap-2">
+                        <span class="small text-muted">Created At</span>
+                        <span class="fw-semibold text-end">
+                            {{ $lead->created_at?->format('d M Y, h:i A') }}
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-2">
+                        <span class="small text-muted">Updated At</span>
+                        <span class="fw-semibold text-end">
+                            {{ $lead->updated_at?->format('d M Y, h:i A') }}
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            @if($canEdit || $canDelete)
+            <div class="card">
+                <div class="card-header py-2">
+                    <h5 class="header-title mb-0">
+                        <i class="bi bi-lightning-charge me-1"></i>
+                        Actions
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    @if($canEdit)
+                    <a href="{{ route('admin.leads.edit', $lead->id) }}" class="btn btn-sm btn-warning w-100 mb-2">
+                        <i class="bi bi-pencil me-1"></i>
                         Edit Lead
                     </a>
+                    @endif
+
+                    @if($canDelete)
                     <form action="{{ route('admin.leads.destroy', $lead->id) }}" method="POST" onsubmit="return deleteConfirm(this, 'This lead will be deleted.')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="bi bi-trash"></i>
+                        <button type="submit" class="btn btn-sm btn-danger w-100">
+                            <i class="bi bi-trash me-1"></i>
                             Delete Lead
                         </button>
                     </form>
+                    @endif
+
                 </div>
             </div>
+            @endif
+
         </div>
+
     </div>
+
 </div>
+
 @endsection

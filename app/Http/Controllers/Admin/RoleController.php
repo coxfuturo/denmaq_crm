@@ -62,8 +62,11 @@ class RoleController extends Controller
         ->where('status', true)
         ->orderBy('module', 'asc')
         ->orderBy('position', 'asc')
+        ->orderBy('id', 'asc')
         ->get()
-        ->groupBy('module');
+        ->groupBy(function ($permission) {
+            return $permission->module ?: 'Other';
+        });
 
         return view('admin.roles.create', compact('permissions'));
     }
@@ -103,6 +106,7 @@ class RoleController extends Controller
                 'array'
             ],
             'permissions.*' => [
+                'string',
                 'exists:permissions,name'
             ]
         ]);
@@ -119,6 +123,7 @@ class RoleController extends Controller
         $permissionNames = $validated['permissions'] ?? [];
 
         $permissions = Permission::where('guard_name', 'web')
+        ->where('status', true)
         ->whereIn('name', $permissionNames)
         ->pluck('name')
         ->toArray();
@@ -153,8 +158,11 @@ class RoleController extends Controller
         ->where('status', true)
         ->orderBy('module', 'asc')
         ->orderBy('position', 'asc')
+        ->orderBy('id', 'asc')
         ->get()
-        ->groupBy('module');
+        ->groupBy(function ($permission) {
+            return $permission->module ?: 'Other';
+        });
 
         return view(
             'admin.roles.edit',
@@ -208,6 +216,7 @@ class RoleController extends Controller
                 'array'
             ],
             'permissions.*' => [
+                'string',
                 'exists:permissions,name'
             ]
         ]);
@@ -223,6 +232,7 @@ class RoleController extends Controller
         $permissionNames = $validated['permissions'] ?? [];
 
         $permissions = Permission::where('guard_name', 'web')
+        ->where('status', true)
         ->whereIn('name', $permissionNames)
         ->pluck('name')
         ->toArray();

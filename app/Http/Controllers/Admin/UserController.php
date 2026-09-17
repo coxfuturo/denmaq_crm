@@ -518,7 +518,7 @@ class UserController extends Controller
         ->with('success', 'User permanently deleted.');
     }
 
-    public function status(string $id)
+    public function changeStatus(Request $request, string $id)
     {
         $this->checkPermission('Users Edit');
 
@@ -532,16 +532,19 @@ class UserController extends Controller
             ->with('error', 'Super Admin status cannot be changed.');
         }
 
-        $user->status = !$user->status;
-        $user->save();
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'boolean'
+            ]
+        ]);
+
+        $user->update([
+            'status' => $request->boolean('status')
+        ]);
 
         return redirect()
         ->back()
         ->with('success', 'User status updated successfully.');
-    }
-
-    public function changeStatus(string $id)
-    {
-        return $this->status($id);
     }
 }

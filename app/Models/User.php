@@ -56,4 +56,9 @@ class User extends Authenticatable
             'created_by'
         );
     }
+
+    public function quotations()
+    {
+        return $this->hasMany(Quotation::class, 'created_by');
+    }
 }

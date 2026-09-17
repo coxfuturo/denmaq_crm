@@ -2,14 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Role;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        Role::updateOrCreate(
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $permissions = Permission::where('guard_name', 'web')->get();
+
+        $superAdmin = Role::updateOrCreate(
             ['name' => 'Super Admin'],
             [
                 'guard_name' => 'web',
@@ -20,7 +26,9 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $superAdmin->syncPermissions($permissions);
+
+        $admin = Role::updateOrCreate(
             ['name' => 'Admin'],
             [
                 'guard_name' => 'web',
@@ -31,7 +39,9 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $admin->syncPermissions($permissions);
+
+        $salesManager = Role::updateOrCreate(
             ['name' => 'Sales Manager'],
             [
                 'guard_name' => 'web',
@@ -42,7 +52,21 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $salesManager->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Leads',
+                'Clients',
+                'Follow Ups',
+                'Projects',
+                'Quotations',
+                'Invoices',
+                'Payments',
+                'Sales Reports',
+            ])
+        );
+
+        $salesExecutive = Role::updateOrCreate(
             ['name' => 'Sales Executive'],
             [
                 'guard_name' => 'web',
@@ -53,7 +77,18 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $salesExecutive->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Leads',
+                'Clients',
+                'Follow Ups',
+                'Projects',
+                'Quotations',
+            ])
+        );
+
+        $accountant = Role::updateOrCreate(
             ['name' => 'Accountant'],
             [
                 'guard_name' => 'web',
@@ -64,7 +99,18 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $accountant->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Clients',
+                'Quotations',
+                'Invoices',
+                'Payments',
+                'Sales Reports',
+            ])
+        );
+
+        $hr = Role::updateOrCreate(
             ['name' => 'HR'],
             [
                 'guard_name' => 'web',
@@ -75,7 +121,15 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $hr->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Users',
+                'User Reports',
+            ])
+        );
+
+        $supportExecutive = Role::updateOrCreate(
             ['name' => 'Support Executive'],
             [
                 'guard_name' => 'web',
@@ -86,7 +140,15 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $supportExecutive->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Clients',
+                'Follow Ups',
+            ])
+        );
+
+        $developer = Role::updateOrCreate(
             ['name' => 'Developer'],
             [
                 'guard_name' => 'web',
@@ -97,7 +159,17 @@ class RoleSeeder extends Seeder
             ]
         );
 
-        Role::updateOrCreate(
+        $developer->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Users',
+                'Roles',
+                'Permissions',
+                'Projects',
+            ])
+        );
+
+        $client = Role::updateOrCreate(
             ['name' => 'Client'],
             [
                 'guard_name' => 'web',
@@ -107,5 +179,14 @@ class RoleSeeder extends Seeder
                 'status' => true,
             ]
         );
+
+        $client->syncPermissions(
+            $permissions->whereIn('module', [
+                'Dashboard',
+                'Profile',
+            ])
+        );
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

@@ -53,4 +53,9 @@ class Client extends Model
             'updated_by'
         );
     }
+
+    public function quotations()
+    {
+        return $this->hasMany(Quotation::class);
+    }
 }

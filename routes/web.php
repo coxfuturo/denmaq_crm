@@ -25,10 +25,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 ->middleware('auth')
 ->name('logout');
 
-Route::middleware('auth')
-->prefix('admin')
-->name('admin.')
-->group(function () {
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('permission:Dashboard View')
@@ -64,11 +61,19 @@ Route::middleware('auth')
 
     Route::patch('/users/{id}/status', [UserController::class, 'changeStatus'])
     ->middleware('permission:Users Edit')
-    ->name('users.status');
+    ->name('users.statu');
 
     Route::delete('/users/{id}', [UserController::class, 'destroy'])
     ->middleware('permission:Users Delete')
     ->name('users.destroy');
+
+    Route::patch('/users/{id}/restore', [UserController::class, 'restore'])
+    ->middleware('permission:Users Restore')
+    ->name('users.restore');
+
+    Route::delete('/users/{id}/force-delete', [UserController::class, 'forceDelete'])
+    ->middleware('permission:Users Force Delete')
+    ->name('users.forceDelete');
 
     Route::get('/roles', [RoleController::class, 'index'])
     ->middleware('permission:Roles View')
@@ -106,7 +111,6 @@ Route::middleware('auth')
     ->middleware('permission:Roles Delete')
     ->name('roles.destroy');
 
-
     Route::get('/permissions', [PermissionController::class, 'index'])
     ->middleware('permission:Roles View')
     ->name('permissions.index');
@@ -126,13 +130,10 @@ Route::middleware('auth')
     Route::put('/permissions/{id}', [PermissionController::class, 'update'])
     ->middleware('permission:Roles Edit')
     ->name('permissions.update');
+
     Route::patch('/permissions/{id}/status', [PermissionController::class, 'changeStatus'])
     ->middleware('permission:Roles Edit')
-    ->name('permissions.status');    
-
-    Route::patch('/permissions/{id}', [PermissionController::class, 'update'])
-    ->middleware('permission:Roles Edit')
-    ->name('permissions.update.patch');
+    ->name('permissions.status');
 
     Route::delete('/permissions/{id}', [PermissionController::class, 'destroy'])
     ->middleware('permission:Roles Delete')
@@ -302,69 +303,99 @@ Route::middleware('auth')
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
     ->name('projects.destroy');
 
-    Route::get('/quotations', [QuotationController::class, 'index'])
-    ->middleware('permission:Quotations View')
-    ->name('quotations.index');
+    Route::prefix('quotations')->name('quotations.')->group(function () {
 
-    Route::get('/quotations/create', [QuotationController::class, 'create'])
-    ->middleware('permission:Quotations Create')
-    ->name('quotations.create');
+        Route::get('/', [QuotationController::class, 'index'])
+        ->middleware('permission:Quotations View')
+        ->name('index');
 
-    Route::post('/quotations', [QuotationController::class, 'store'])
-    ->middleware('permission:Quotations Create')
-    ->name('quotations.store');
+        Route::get('/create', [QuotationController::class, 'create'])
+        ->middleware('permission:Quotations Create')
+        ->name('create');
 
-    Route::get('/quotations/{quotation}', [QuotationController::class, 'show'])
-    ->middleware('permission:Quotations View')
-    ->name('quotations.show');
+        Route::post('/', [QuotationController::class, 'store'])
+        ->middleware('permission:Quotations Create')
+        ->name('store');
 
-    Route::get('/quotations/{quotation}/edit', [QuotationController::class, 'edit'])
-    ->middleware('permission:Quotations Edit')
-    ->name('quotations.edit');
+        Route::get('/trash', [QuotationController::class, 'trash'])
+        ->middleware('permission:Quotations Delete')
+        ->name('trash');
 
-    Route::put('/quotations/{quotation}', [QuotationController::class, 'update'])
-    ->middleware('permission:Quotations Edit')
-    ->name('quotations.update');
+        Route::get('/{quotation}', [QuotationController::class, 'show'])
+        ->middleware('permission:Quotations View')
+        ->name('show');
 
-    Route::patch('/quotations/{quotation}', [QuotationController::class, 'update'])
-    ->middleware('permission:Quotations Edit')
-    ->name('quotations.update.patch');
+        Route::get('/{quotation}/edit', [QuotationController::class, 'edit'])
+        ->middleware('permission:Quotations Edit')
+        ->name('edit');
 
-    Route::delete('/quotations/{quotation}', [QuotationController::class, 'destroy'])
-    ->middleware('permission:Quotations Delete')
-    ->name('quotations.destroy');
+        Route::put('/{quotation}', [QuotationController::class, 'update'])
+        ->middleware('permission:Quotations Edit')
+        ->name('update');
 
-    Route::get('/invoices', [InvoiceController::class, 'index'])
-    ->middleware('permission:Invoices View')
-    ->name('invoices.index');
+        Route::patch('/{quotation}/status', [QuotationController::class, 'changeStatus'])
+        ->middleware('permission:Quotations Edit')
+        ->name('changeStatus');
 
-    Route::get('/invoices/create', [InvoiceController::class, 'create'])
-    ->middleware('permission:Invoices Create')
-    ->name('invoices.create');
+        Route::delete('/{quotation}', [QuotationController::class, 'destroy'])
+        ->middleware('permission:Quotations Delete')
+        ->name('destroy');
 
-    Route::post('/invoices', [InvoiceController::class, 'store'])
-    ->middleware('permission:Invoices Create')
-    ->name('invoices.store');
+        Route::patch('/{quotation}/restore', [QuotationController::class, 'restore'])
+        ->middleware('permission:Quotations Delete')
+        ->name('restore');
 
-    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])
-    ->middleware('permission:Invoices View')
-    ->name('invoices.show');
+        Route::delete('/{quotation}/force-delete', [QuotationController::class, 'forceDelete'])
+        ->middleware('permission:Quotations Delete')
+        ->name('forceDelete');
+    });
 
-    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])
-    ->middleware('permission:Invoices Edit')
-    ->name('invoices.edit');
+    Route::prefix('invoices')->name('invoices.')->group(function () {
 
-    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])
-    ->middleware('permission:Invoices Edit')
-    ->name('invoices.update');
+        Route::get('/', [InvoiceController::class, 'index'])
+        ->middleware('permission:Invoices View')
+        ->name('index');
 
-    Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])
-    ->middleware('permission:Invoices Edit')
-    ->name('invoices.update.patch');
+        Route::get('/create', [InvoiceController::class, 'create'])
+        ->middleware('permission:Invoices Create')
+        ->name('create');
 
-    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])
-    ->middleware('permission:Invoices Delete')
-    ->name('invoices.destroy');
+        Route::post('/', [InvoiceController::class, 'store'])
+        ->middleware('permission:Invoices Create')
+        ->name('store');
+
+        Route::get('/trash', [InvoiceController::class, 'trash'])
+        ->middleware('permission:Invoices Delete')
+        ->name('trash');
+
+        Route::get('/{invoice}', [InvoiceController::class, 'show'])
+        ->middleware('permission:Invoices View')
+        ->name('show');
+
+        Route::get('/{invoice}/edit', [InvoiceController::class, 'edit'])
+        ->middleware('permission:Invoices Edit')
+        ->name('edit');
+
+        Route::put('/{invoice}', [InvoiceController::class, 'update'])
+        ->middleware('permission:Invoices Edit')
+        ->name('update');
+
+        Route::patch('/{invoice}/status', [InvoiceController::class, 'changeStatus'])
+        ->middleware('permission:Invoices Edit')
+        ->name('changeStatus');
+
+        Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])
+        ->middleware('permission:Invoices Delete')
+        ->name('destroy');
+
+        Route::patch('/{invoice}/restore', [InvoiceController::class, 'restore'])
+        ->middleware('permission:Invoices Delete')
+        ->name('restore');
+
+        Route::delete('/{invoice}/force-delete', [InvoiceController::class, 'forceDelete'])
+        ->middleware('permission:Invoices Delete')
+        ->name('forceDelete');
+    });
 
     Route::get('/payments', [PaymentController::class, 'index'])
     ->middleware('permission:Payments View')
@@ -398,6 +429,18 @@ Route::middleware('auth')
     ->middleware('permission:Payments Delete')
     ->name('payments.destroy');
 
+    Route::get('/payments/trash', [PaymentController::class, 'trash'])
+    ->middleware('permission:Payments Delete')
+    ->name('payments.trash');
+
+    Route::patch('/payments/{payment}/restore', [PaymentController::class, 'restore'])
+    ->middleware('permission:Payments Delete')
+    ->name('payments.restore');
+
+    Route::delete('/payments/{payment}/force-delete', [PaymentController::class, 'forceDelete'])
+    ->middleware('permission:Payments Delete')
+    ->name('payments.forceDelete');
+
     Route::get('/reports/leads', [ReportController::class, 'leadReport'])
     ->middleware('permission:Reports View')
     ->name('reports.leads');
@@ -418,9 +461,12 @@ Route::middleware('auth')
     ->middleware('permission:Settings Edit')
     ->name('settings.company.update');
 
-    Route::get('/profile', [ProfileController::class, 'index'])
-    ->name('profile');
+    Route::get('/profile', [ProfileController::class, 'edit'])
+    ->name('profile.edit');
 
     Route::post('/profile', [ProfileController::class, 'update'])
     ->name('profile.update');
+
+    Route::put('/profile', [ProfileController::class, 'update'])
+    ->name('profile.update.put');
 });
