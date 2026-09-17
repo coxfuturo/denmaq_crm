@@ -12,6 +12,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'invoice_number',
+        'quotation_id',
         'client_id',
         'invoice_date',
         'due_date',
@@ -38,6 +39,11 @@ class Invoice extends Model
         'total' => 'decimal:2',
     ];
 
+    public function quotation()
+    {
+        return $this->belongsTo(Quotation::class);
+    }
+
     public function items()
     {
         return $this->hasMany(InvoiceItem::class)->orderBy('position');
@@ -51,5 +57,10 @@ class Invoice extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 }

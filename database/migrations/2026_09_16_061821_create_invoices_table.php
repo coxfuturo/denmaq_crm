@@ -10,12 +10,20 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->string('invoice_number')->unique();
-            $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+            $table->string('invoice_number', 50)->unique();
+            $table->foreignId('quotation_id')->nullable()->constrained('quotations')->nullOnDelete();
+            $table->foreignId('client_id')->constrained('clients')->restrictOnDelete();
             $table->date('invoice_date');
             $table->date('due_date')->nullable();
-            $table->string('subject')->nullable();
-            $table->string('status')->default('Draft');
+            $table->string('subject', 255)->nullable();
+            $table->enum('status', [
+                'Draft',
+                'Sent',
+                'Partially Paid',
+                'Paid',
+                'Overdue',
+                'Cancelled'
+            ])->default('Draft');
             $table->decimal('subtotal', 15, 2)->default(0);
             $table->enum('discount_type', ['percentage', 'fixed'])->default('fixed');
             $table->decimal('discount_value', 15, 2)->default(0);
@@ -27,6 +35,13 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('quotation_id');
+            $table->index('client_id');
+            $table->index('created_by');
+            $table->index('invoice_date');
+            $table->index('due_date');
+            $table->index('status');
         });
     }
 

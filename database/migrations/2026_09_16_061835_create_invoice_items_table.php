@@ -11,13 +11,15 @@ return new class extends Migration
         Schema::create('invoice_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained('invoices')->cascadeOnDelete();
-            $table->string('item_name');
+            $table->string('item_name', 255);
             $table->text('description')->nullable();
-            $table->decimal('quantity', 15, 2)->default(1);
+            $table->decimal('quantity', 12, 2)->default(1);
             $table->decimal('rate', 15, 2)->default(0);
             $table->decimal('amount', 15, 2)->default(0);
             $table->unsignedInteger('position')->default(0);
             $table->timestamps();
+
+            $table->index('invoice_id');
         });
     }
 

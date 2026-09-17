@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Invoice;
+use App\Models\Quotation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,9 @@ class InvoiceController extends Controller
         $query = Invoice::with([
             'client',
             'creator',
+            'quotation',
             'items',
+            'payments',
         ]);
 
         if (!$this->isSuperAdmin()) {
@@ -61,10 +64,19 @@ class InvoiceController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
                 ->orWhere('subject', 'like', "%{$search}%")
+                ->orWhereHas('quotation', function ($quotationQuery) use ($search) {
+                    $quotationQuery->where(
+                        'quotation_number',
+                        'like',
+                        "%{$search}%"
+                    );
+                })
                 ->orWhereHas('client', function ($clientQuery) use ($search) {
                     $clientQuery->where('company_name', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('alternate_mobile', 'like', "%{$search}%");
                 });
             });
         }
@@ -119,17 +131,17 @@ class InvoiceController extends Controller
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get();
-        } else {
-            $users = collect();
-        }
 
-        if ($this->isSuperAdmin()) {
             $clients = Client::query()
+            ->orderBy('company_name')
             ->orderBy('id')
             ->get();
         } else {
+            $users = collect();
+
             $clients = Client::query()
             ->where('created_by', auth()->id())
+            ->orderBy('company_name')
             ->orderBy('id')
             ->get();
         }
@@ -137,8 +149,8 @@ class InvoiceController extends Controller
         $statuses = [
             'Draft',
             'Sent',
-            'Paid',
             'Partially Paid',
+            'Paid',
             'Overdue',
             'Cancelled',
         ];
@@ -154,33 +166,44 @@ class InvoiceController extends Controller
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->checkPermission('Invoices Create');
 
-        if ($this->isSuperAdmin()) {
-            $clients = Client::query()
-            ->orderBy('id')
-            ->get();
-        } else {
-            $clients = Client::query()
-            ->where('created_by', auth()->id())
-            ->orderBy('id')
-            ->get();
+        $query = Quotation::query()
+        ->with([
+            'client',
+            'items',
+        ])
+        ->where('status', 'Accepted')
+        ->whereDoesntHave('invoices');
+
+        if (!$this->isSuperAdmin()) {
+            $query->where('created_by', auth()->id());
         }
 
-        $statuses = [
-            'Draft',
-            'Sent',
-            'Paid',
-            'Partially Paid',
-            'Overdue',
-            'Cancelled',
-        ];
+        $quotations = $query
+        ->orderByDesc('id')
+        ->get();
+
+        $selectedQuotation = null;
+
+        if ($request->filled('quotation_id')) {
+            $selectedQuotation = $quotations->firstWhere(
+                'id',
+                (int) $request->quotation_id
+            );
+
+            abort_unless(
+                $selectedQuotation,
+                404,
+                'Quotation not found or invoice already exists for this quotation.'
+            );
+        }
 
         return view('admin.invoices.create', compact(
-            'clients',
-            'statuses'
+            'quotations',
+            'selectedQuotation'
         ));
     }
 
@@ -190,16 +213,43 @@ class InvoiceController extends Controller
 
         $validated = $this->validateInvoice($request);
 
-        $this->validateClientOwnership((int) $validated['client_id']);
+        $quotation = Quotation::query()
+        ->with([
+            'client',
+            'items',
+        ])
+        ->where('id', $validated['quotation_id'])
+        ->where('status', 'Accepted')
+        ->firstOrFail();
+
+        if (!$this->isSuperAdmin()) {
+            abort_unless(
+                (int) $quotation->created_by === (int) auth()->id(),
+                403,
+                'You do not have permission to use this quotation.'
+            );
+        }
+
+        abort_unless(
+            !$quotation->invoices()->exists(),
+            422,
+            'An invoice already exists for this quotation.'
+        );
+
+        abort_unless(
+            $quotation->items->isNotEmpty(),
+            422,
+            'The selected quotation does not contain any items.'
+        );
 
         DB::beginTransaction();
 
         try {
             $subtotal = 0;
 
-            foreach ($validated['items'] as $item) {
-                $quantity = (float) $item['quantity'];
-                $rate = (float) $item['rate'];
+            foreach ($quotation->items as $item) {
+                $quantity = max((float) $item->quantity, 0);
+                $rate = max((float) $item->rate, 0);
                 $amount = round($quantity * $rate, 2);
 
                 $subtotal += $amount;
@@ -207,53 +257,76 @@ class InvoiceController extends Controller
 
             $subtotal = round($subtotal, 2);
 
-            $discountValue = (float) ($validated['discount_value'] ?? 0);
-            $discountType = $validated['discount_type'] ?? 'fixed';
+            $discountType = $quotation->discount_type ?: 'fixed';
+            $discountValue = round((float) $quotation->discount, 2);
+
+            $discountValue = max($discountValue, 0);
 
             if ($discountType === 'percentage') {
+                $discountValue = min($discountValue, 100);
+
                 $discountAmount = round(
-                    ($subtotal * $discountValue) / 100,
+                    $subtotal * ($discountValue / 100),
                     2
                 );
             } else {
                 $discountAmount = round($discountValue, 2);
             }
 
-            $discountAmount = min($discountAmount, $subtotal);
+            $discountAmount = min(
+                max($discountAmount, 0),
+                $subtotal
+            );
 
-            $tax = round((float) ($validated['tax'] ?? 0), 2);
+            $taxPercentage = round((float) $quotation->tax, 2);
+
+            $taxPercentage = min(
+                max($taxPercentage, 0),
+                100
+            );
+
+            $taxableAmount = round(
+                max($subtotal - $discountAmount, 0),
+                2
+            );
+
+            $taxAmount = round(
+                $taxableAmount * ($taxPercentage / 100),
+                2
+            );
 
             $total = round(
-                max(0, $subtotal - $discountAmount + $tax),
+                max($taxableAmount + $taxAmount, 0),
                 2
             );
 
             $invoice = Invoice::create([
                 'invoice_number' => $this->generateInvoiceNumber(),
-                'client_id' => $validated['client_id'],
+                'quotation_id' => $quotation->id,
+                'client_id' => $quotation->client_id,
                 'invoice_date' => $validated['invoice_date'],
                 'due_date' => $validated['due_date'] ?? null,
-                'subject' => $validated['subject'] ?? null,
-                'status' => $validated['status'],
+                'subject' => $quotation->subject,
+                'status' => 'Draft',
                 'subtotal' => $subtotal,
                 'discount_type' => $discountType,
                 'discount_value' => $discountValue,
                 'discount_amount' => $discountAmount,
-                'tax' => $tax,
+                'tax' => $taxPercentage,
                 'total' => $total,
-                'notes' => $validated['notes'] ?? null,
-                'terms' => $validated['terms'] ?? null,
+                'notes' => $quotation->notes,
+                'terms' => $quotation->terms,
                 'created_by' => auth()->id(),
             ]);
 
-            foreach ($validated['items'] as $index => $item) {
-                $quantity = (float) $item['quantity'];
-                $rate = (float) $item['rate'];
+            foreach ($quotation->items as $index => $item) {
+                $quantity = max((float) $item->quantity, 0);
+                $rate = max((float) $item->rate, 0);
                 $amount = round($quantity * $rate, 2);
 
                 $invoice->items()->create([
-                    'item_name' => $item['item_name'],
-                    'description' => $item['description'] ?? null,
+                    'item_name' => $item->item_name,
+                    'description' => $item->description,
                     'quantity' => $quantity,
                     'rate' => $rate,
                     'amount' => $amount,
@@ -264,8 +337,8 @@ class InvoiceController extends Controller
             DB::commit();
 
             return redirect()
-            ->route('admin.invoices.index')
-            ->with('success', 'Invoice created successfully.');
+            ->route('admin.invoices.show', $invoice->id)
+            ->with('success', 'Invoice created successfully from quotation.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -284,10 +357,27 @@ class InvoiceController extends Controller
         $invoice->load([
             'client',
             'creator',
+            'quotation',
             'items',
+            'payments',
         ]);
 
-        return view('admin.invoices.show', compact('invoice'));
+        $paidAmount = $invoice->payments()
+        ->where('status', 'completed')
+        ->sum('amount');
+
+        $paidAmount = round((float) $paidAmount, 2);
+
+        $remainingAmount = max(
+            round((float) $invoice->total - $paidAmount, 2),
+            0
+        );
+
+        return view('admin.invoices.show', compact(
+            'invoice',
+            'paidAmount',
+            'remainingAmount'
+        ));
     }
 
     public function edit(Invoice $invoice)
@@ -296,32 +386,14 @@ class InvoiceController extends Controller
 
         $this->authorizeOwnership($invoice);
 
-        if ($this->isSuperAdmin()) {
-            $clients = Client::query()
-            ->orderBy('id')
-            ->get();
-        } else {
-            $clients = Client::query()
-            ->where('created_by', auth()->id())
-            ->orderBy('id')
-            ->get();
-        }
-
-        $statuses = [
-            'Draft',
-            'Sent',
-            'Paid',
-            'Partially Paid',
-            'Overdue',
-            'Cancelled',
-        ];
-
-        $invoice->load('items');
+        $invoice->load([
+            'items',
+            'quotation',
+            'client',
+        ]);
 
         return view('admin.invoices.edit', compact(
-            'invoice',
-            'clients',
-            'statuses'
+            'invoice'
         ));
     }
 
@@ -333,10 +405,9 @@ class InvoiceController extends Controller
 
         $validated = $this->validateInvoice(
             $request,
-            $invoice->id
+            $invoice->id,
+            false
         );
-
-        $this->validateClientOwnership((int) $validated['client_id']);
 
         DB::beginTransaction();
 
@@ -344,8 +415,8 @@ class InvoiceController extends Controller
             $subtotal = 0;
 
             foreach ($validated['items'] as $item) {
-                $quantity = (float) $item['quantity'];
-                $rate = (float) $item['rate'];
+                $quantity = max((float) $item['quantity'], 0);
+                $rate = max((float) $item['rate'], 0);
                 $amount = round($quantity * $rate, 2);
 
                 $subtotal += $amount;
@@ -353,29 +424,72 @@ class InvoiceController extends Controller
 
             $subtotal = round($subtotal, 2);
 
-            $discountValue = (float) ($validated['discount_value'] ?? 0);
-            $discountType = $validated['discount_type'] ?? 'fixed';
+            $discountType = $validated['discount_type'];
+
+            $discountValue = round(
+                (float) ($validated['discount_value'] ?? 0),
+                2
+            );
+
+            $discountValue = max($discountValue, 0);
 
             if ($discountType === 'percentage') {
+                $discountValue = min($discountValue, 100);
+
                 $discountAmount = round(
-                    ($subtotal * $discountValue) / 100,
+                    $subtotal * ($discountValue / 100),
                     2
                 );
             } else {
                 $discountAmount = round($discountValue, 2);
             }
 
-            $discountAmount = min($discountAmount, $subtotal);
+            $discountAmount = min(
+                max($discountAmount, 0),
+                $subtotal
+            );
 
-            $tax = round((float) ($validated['tax'] ?? 0), 2);
-
-            $total = round(
-                max(0, $subtotal - $discountAmount + $tax),
+            $taxPercentage = round(
+                (float) ($validated['tax'] ?? 0),
                 2
             );
 
+            $taxPercentage = min(
+                max($taxPercentage, 0),
+                100
+            );
+
+            $taxableAmount = round(
+                max($subtotal - $discountAmount, 0),
+                2
+            );
+
+            $taxAmount = round(
+                $taxableAmount * ($taxPercentage / 100),
+                2
+            );
+
+            $total = round(
+                max($taxableAmount + $taxAmount, 0),
+                2
+            );
+
+            $paidAmount = $invoice->payments()
+            ->where('status', 'completed')
+            ->sum('amount');
+
+            $paidAmount = round((float) $paidAmount, 2);
+
+            if ($total < $paidAmount) {
+                return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Invoice total cannot be less than the amount already paid.'
+                );
+            }
+
             $invoice->update([
-                'client_id' => $validated['client_id'],
                 'invoice_date' => $validated['invoice_date'],
                 'due_date' => $validated['due_date'] ?? null,
                 'subject' => $validated['subject'] ?? null,
@@ -384,7 +498,7 @@ class InvoiceController extends Controller
                 'discount_type' => $discountType,
                 'discount_value' => $discountValue,
                 'discount_amount' => $discountAmount,
-                'tax' => $tax,
+                'tax' => $taxPercentage,
                 'total' => $total,
                 'notes' => $validated['notes'] ?? null,
                 'terms' => $validated['terms'] ?? null,
@@ -393,8 +507,8 @@ class InvoiceController extends Controller
             $invoice->items()->delete();
 
             foreach ($validated['items'] as $index => $item) {
-                $quantity = (float) $item['quantity'];
-                $rate = (float) $item['rate'];
+                $quantity = max((float) $item['quantity'], 0);
+                $rate = max((float) $item['rate'], 0);
                 $amount = round($quantity * $rate, 2);
 
                 $invoice->items()->create([
@@ -410,7 +524,7 @@ class InvoiceController extends Controller
             DB::commit();
 
             return redirect()
-            ->route('admin.invoices.index')
+            ->route('admin.invoices.show', $invoice->id)
             ->with('success', 'Invoice updated successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -442,6 +556,7 @@ class InvoiceController extends Controller
         ->with([
             'client',
             'creator',
+            'quotation',
             'items',
         ]);
 
@@ -455,10 +570,19 @@ class InvoiceController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
                 ->orWhere('subject', 'like', "%{$search}%")
+                ->orWhereHas('quotation', function ($quotationQuery) use ($search) {
+                    $quotationQuery->where(
+                        'quotation_number',
+                        'like',
+                        "%{$search}%"
+                    );
+                })
                 ->orWhereHas('client', function ($clientQuery) use ($search) {
                     $clientQuery->where('company_name', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('alternate_mobile', 'like', "%{$search}%");
                 });
             });
         }
@@ -472,15 +596,13 @@ class InvoiceController extends Controller
         ->paginate(15)
         ->withQueryString();
 
-        if ($this->isSuperAdmin()) {
-            $users = User::query()
-            ->where('status', true)
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
-        } else {
-            $users = collect();
-        }
+        $users = $this->isSuperAdmin()
+        ? User::query()
+        ->where('status', true)
+        ->orderBy('first_name')
+        ->orderBy('last_name')
+        ->get()
+        : collect();
 
         return view('admin.invoices.trash', compact(
             'invoices',
@@ -490,7 +612,7 @@ class InvoiceController extends Controller
 
     public function restore(int $id)
     {
-        $this->checkPermission('Invoices Delete');
+        $this->checkPermission('Invoices Restore');
 
         $invoice = Invoice::onlyTrashed()->findOrFail($id);
 
@@ -505,7 +627,7 @@ class InvoiceController extends Controller
 
     public function forceDelete(int $id)
     {
-        $this->checkPermission('Invoices Delete');
+        $this->checkPermission('Invoices Force Delete');
 
         $invoice = Invoice::onlyTrashed()->findOrFail($id);
 
@@ -542,8 +664,8 @@ class InvoiceController extends Controller
                 Rule::in([
                     'Draft',
                     'Sent',
-                    'Paid',
                     'Partially Paid',
+                    'Paid',
                     'Overdue',
                     'Cancelled',
                 ]),
@@ -562,14 +684,10 @@ class InvoiceController extends Controller
 
     private function validateInvoice(
         Request $request,
-        ?int $invoiceId = null
+        ?int $invoiceId = null,
+        bool $requireQuotation = true
     ): array {
-        $validated = $request->validate([
-            'client_id' => [
-                'required',
-                'integer',
-                'exists:clients,id',
-            ],
+        $rules = [
             'invoice_date' => [
                 'required',
                 'date',
@@ -589,8 +707,8 @@ class InvoiceController extends Controller
                 Rule::in([
                     'Draft',
                     'Sent',
-                    'Paid',
                     'Partially Paid',
+                    'Paid',
                     'Overdue',
                     'Cancelled',
                 ]),
@@ -611,6 +729,7 @@ class InvoiceController extends Controller
                 'nullable',
                 'numeric',
                 'min:0',
+                'max:100',
             ],
             'notes' => [
                 'nullable',
@@ -644,12 +763,26 @@ class InvoiceController extends Controller
                 'numeric',
                 'min:0',
             ],
-        ]);
+        ];
 
-        $discountType = $validated['discount_type'] ?? 'fixed';
+        if ($requireQuotation) {
+            $rules['quotation_id'] = [
+                'required',
+                'integer',
+                'exists:quotations,id',
+            ];
+        }
+
+        $validated = $request->validate($rules);
+
+        $discountType = $validated['discount_type'];
+
         $discountValue = (float) ($validated['discount_value'] ?? 0);
 
-        if ($discountType === 'percentage' && $discountValue > 100) {
+        if (
+            $discountType === 'percentage' &&
+            $discountValue > 100
+        ) {
             abort(
                 422,
                 'Percentage discount cannot be greater than 100.'
@@ -657,24 +790,6 @@ class InvoiceController extends Controller
         }
 
         return $validated;
-    }
-
-    private function validateClientOwnership(int $clientId): void
-    {
-        if ($this->isSuperAdmin()) {
-            return;
-        }
-
-        $exists = Client::query()
-        ->where('id', $clientId)
-        ->where('created_by', auth()->id())
-        ->exists();
-
-        abort_unless(
-            $exists,
-            403,
-            'You do not have permission to use this client.'
-        );
     }
 
     private function authorizeOwnership(Invoice $invoice): void
@@ -696,9 +811,21 @@ class InvoiceController extends Controller
         ->orderByDesc('id')
         ->first();
 
-        $nextNumber = $lastInvoice
-        ? ((int) substr($lastInvoice->invoice_number, 4)) + 1
-        : 1;
+        if (!$lastInvoice) {
+            return 'INV-0001';
+        }
+
+        preg_match(
+            '/(\d+)$/',
+            $lastInvoice->invoice_number,
+            $matches
+        );
+
+        $lastNumber = isset($matches[1])
+        ? (int) $matches[1]
+        : $lastInvoice->id;
+
+        $nextNumber = $lastNumber + 1;
 
         return 'INV-' . str_pad(
             $nextNumber,

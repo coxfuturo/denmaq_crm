@@ -35,20 +35,27 @@ class PaymentController extends Controller
         return Auth::check() && Auth::user()->hasRole('Super Admin');
     }
 
-    public function index(Request $request)
+    private function paymentQuery()
     {
-        $this->checkPermission('Payments View');
-
         $query = Payment::with([
             'client',
             'project',
             'invoice',
-            'creator'
+            'creator',
         ]);
 
         if (!$this->isSuperAdmin()) {
             $query->where('created_by', Auth::id());
         }
+
+        return $query;
+    }
+
+    public function index(Request $request)
+    {
+        $this->checkPermission('Payments View');
+
+        $query = $this->paymentQuery();
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -61,6 +68,9 @@ class PaymentController extends Controller
                     ->orWhere('contact_person', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('mobile', 'like', "%{$search}%");
+                })
+                ->orWhereHas('invoice', function ($invoiceQuery) use ($search) {
+                    $invoiceQuery->where('invoice_number', 'like', "%{$search}%");
                 });
             });
         }
@@ -118,7 +128,15 @@ class PaymentController extends Controller
         ->get();
 
         $invoices = Invoice::query()
-        ->latest('id')
+        ->select([
+            'id',
+            'invoice_number',
+            'client_id',
+            'total',
+            'status',
+        ])
+        ->with('client')
+        ->orderByDesc('id')
         ->get();
 
         $users = $this->isSuperAdmin()
@@ -137,27 +155,56 @@ class PaymentController extends Controller
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->checkPermission('Payments Create');
 
-        $clients = Client::query()
-        ->orderBy('company_name')
-        ->orderBy('contact_person')
-        ->get();
+        $invoiceQuery = Invoice::with('client')
+        ->whereNotIn('status', ['Cancelled']);
 
-        $projects = Project::query()
-        ->orderBy('name')
-        ->get();
+        if (!$this->isSuperAdmin()) {
+            $invoiceQuery->where('created_by', Auth::id());
+        }
 
-        $invoices = Invoice::query()
-        ->latest('id')
-        ->get();
+        $invoices = $invoiceQuery
+        ->orderByDesc('id')
+        ->get()
+        ->filter(function ($invoice) {
+            return $this->calculateRemainingDue($invoice) > 0;
+        })
+        ->values();
+
+        $invoiceData = $invoices->map(function ($invoice) {
+            $paidAmount = $this->calculatePaidAmount($invoice);
+            $total = (float) $invoice->total;
+            $remainingDue = max($total - $paidAmount, 0);
+
+            return [
+                'id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'client_name' => $invoice->client?->company_name ?: $invoice->client?->name,
+                'invoice_date' => $invoice->invoice_date?->format('d M Y'),
+                'due_date' => $invoice->due_date?->format('d M Y'),
+                'status' => $invoice->status,
+                'total' => $total,
+                'paid_amount' => $paidAmount,
+                'remaining_due' => $remainingDue,
+            ];
+        })->values();
+
+        $selectedInvoice = null;
+
+        if ($request->filled('invoice_id')) {
+            $selectedInvoice = $invoices->firstWhere(
+                'id',
+                (int) $request->invoice_id
+            );
+        }
 
         return view('admin.payments.create', compact(
-            'clients',
-            'projects',
-            'invoices'
+            'invoices',
+            'invoiceData',
+            'selectedInvoice'
         ));
     }
 
@@ -166,18 +213,8 @@ class PaymentController extends Controller
         $this->checkPermission('Payments Create');
 
         $validated = $request->validate([
-            'client_id' => [
-                'required',
-                'integer',
-                'exists:clients,id',
-            ],
-            'project_id' => [
-                'nullable',
-                'integer',
-                'exists:projects,id',
-            ],
             'invoice_id' => [
-                'nullable',
+                'required',
                 'integer',
                 'exists:invoices,id',
             ],
@@ -243,42 +280,80 @@ class PaymentController extends Controller
             'attachment.mimes' => 'Payment proof must be JPG, JPEG, PNG, WEBP or PDF.',
         ]);
 
-        if (!empty($validated['project_id'])) {
-            $projectExists = Project::whereKey($validated['project_id'])
-            ->where('client_id', $validated['client_id'])
-            ->exists();
+        $invoice = Invoice::with('client')->find($validated['invoice_id']);
 
-            if (!$projectExists) {
-                return back()
-                ->withInput()
-                ->withErrors([
-                    'project_id' => 'Selected project does not belong to the selected client.',
-                ]);
+        if (!$invoice) {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'invoice_id' => 'Selected invoice was not found.',
+            ]);
+        }
+
+        if (
+            !$this->isSuperAdmin() &&
+            (int) $invoice->created_by !== (int) Auth::id()
+        ) {
+            abort(403, 'You do not have permission to access this invoice.');
+        }
+
+        if ($invoice->status === 'Cancelled') {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'invoice_id' => 'Payment cannot be added to a cancelled invoice.',
+            ]);
+        }
+
+        $remainingDue = $this->calculateRemainingDue($invoice);
+
+        if ($remainingDue <= 0) {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'invoice_id' => 'This invoice is already fully paid.',
+            ]);
+        }
+
+        if (
+            $validated['status'] === 'completed' &&
+            (float) $validated['amount'] > $remainingDue
+        ) {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'amount' => 'Payment amount cannot be greater than the remaining due amount of ₹' . number_format($remainingDue, 2),
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $validated, $invoice) {
+            $attachment = null;
+
+            if ($request->hasFile('attachment')) {
+                $attachment = $request->file('attachment')->store(
+                    'payments',
+                    'public'
+                );
             }
-        }
 
-        if (!empty($validated['invoice_id'])) {
-            $invoice = Invoice::find($validated['invoice_id']);
+            Payment::create([
+                'payment_number' => $this->generatePaymentNumber(),
+                'client_id' => $invoice->client_id,
+                'project_id' => null,
+                'invoice_id' => $invoice->id,
+                'amount' => $validated['amount'],
+                'payment_date' => $validated['payment_date'],
+                'payment_method' => $validated['payment_method'],
+                'transaction_id' => $validated['transaction_id'] ?? null,
+                'bank_account' => $validated['bank_account'] ?? null,
+                'status' => $validated['status'],
+                'notes' => $validated['notes'] ?? null,
+                'attachment' => $attachment,
+                'created_by' => Auth::id(),
+            ]);
 
-            if (!$invoice) {
-                return back()
-                ->withInput()
-                ->withErrors([
-                    'invoice_id' => 'Selected invoice was not found.',
-                ]);
-            }
-        }
-
-        $validated['payment_number'] = $this->generatePaymentNumber();
-        $validated['created_by'] = Auth::id();
-
-        if ($request->hasFile('attachment')) {
-            $validated['attachment'] = $request
-            ->file('attachment')
-            ->store('payments', 'public');
-        }
-
-        Payment::create($validated);
+            $this->updateInvoicePaymentStatus($invoice->fresh());
+        });
 
         return redirect()
         ->route('admin.payments.index')
@@ -294,11 +369,27 @@ class PaymentController extends Controller
         $payment->load([
             'client',
             'project',
-            'invoice',
+            'invoice.client',
+            'invoice.payments',
             'creator',
         ]);
 
-        return view('admin.payments.show', compact('payment'));
+        $paidAmount = 0;
+        $remainingDue = 0;
+
+        if ($payment->invoice) {
+            $paidAmount = $this->calculatePaidAmount($payment->invoice);
+            $remainingDue = max(
+                (float) $payment->invoice->total - $paidAmount,
+                0
+            );
+        }
+
+        return view('admin.payments.show', compact(
+            'payment',
+            'paidAmount',
+            'remainingDue'
+        ));
     }
 
     public function edit(Payment $payment)
@@ -307,24 +398,38 @@ class PaymentController extends Controller
 
         $this->authorizePaymentAccess($payment);
 
-        $clients = Client::query()
-        ->orderBy('company_name')
-        ->orderBy('contact_person')
-        ->get();
+        $payment->load([
+            'invoice.client',
+        ]);
 
-        $projects = Project::query()
-        ->orderBy('name')
-        ->get();
+        $invoice = $payment->invoice;
 
-        $invoices = Invoice::query()
-        ->latest('id')
-        ->get();
+        if (!$invoice) {
+            return redirect()
+            ->route('admin.payments.index')
+            ->with('error', 'Invoice not found for this payment.');
+        }
+
+        if ($invoice->status === 'Cancelled') {
+            return redirect()
+            ->route('admin.payments.index')
+            ->with('error', 'Payment for a cancelled invoice cannot be edited.');
+        }
+
+        $paidOtherPayments = (float) Payment::where('invoice_id', $invoice->id)
+        ->where('status', 'completed')
+        ->where('id', '!=', $payment->id)
+        ->sum('amount');
+
+        $remainingForPayment = max(
+            (float) $invoice->total - $paidOtherPayments,
+            0
+        );
 
         return view('admin.payments.edit', compact(
             'payment',
-            'clients',
-            'projects',
-            'invoices'
+            'invoice',
+            'remainingForPayment'
         ));
     }
 
@@ -335,21 +440,6 @@ class PaymentController extends Controller
         $this->authorizePaymentAccess($payment);
 
         $validated = $request->validate([
-            'client_id' => [
-                'required',
-                'integer',
-                'exists:clients,id',
-            ],
-            'project_id' => [
-                'nullable',
-                'integer',
-                'exists:projects,id',
-            ],
-            'invoice_id' => [
-                'nullable',
-                'integer',
-                'exists:invoices,id',
-            ],
             'amount' => [
                 'required',
                 'regex:/^\d{1,13}(\.\d{1,2})?$/',
@@ -412,43 +502,76 @@ class PaymentController extends Controller
             'attachment.mimes' => 'Payment proof must be JPG, JPEG, PNG, WEBP or PDF.',
         ]);
 
-        if (!empty($validated['project_id'])) {
-            $projectExists = Project::whereKey($validated['project_id'])
-            ->where('client_id', $validated['client_id'])
-            ->exists();
+        $invoice = Invoice::find($payment->invoice_id);
 
-            if (!$projectExists) {
+        if (!$invoice) {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'amount' => 'Invoice not found for this payment.',
+            ]);
+        }
+
+        if ($invoice->status === 'Cancelled') {
+            return back()
+            ->withInput()
+            ->withErrors([
+                'amount' => 'Payment for a cancelled invoice cannot be updated.',
+            ]);
+        }
+
+        if (
+            !$this->isSuperAdmin() &&
+            (int) $invoice->created_by !== (int) Auth::id()
+        ) {
+            abort(403, 'You do not have permission to access this invoice.');
+        }
+
+        $otherCompletedAmount = (float) Payment::where('invoice_id', $invoice->id)
+        ->where('status', 'completed')
+        ->where('id', '!=', $payment->id)
+        ->sum('amount');
+
+        if ($validated['status'] === 'completed') {
+            $maximumAllowed = max(
+                (float) $invoice->total - $otherCompletedAmount,
+                0
+            );
+
+            if ((float) $validated['amount'] > $maximumAllowed) {
                 return back()
                 ->withInput()
                 ->withErrors([
-                    'project_id' => 'Selected project does not belong to the selected client.',
+                    'amount' => 'Payment amount cannot be greater than ₹' . number_format($maximumAllowed, 2),
                 ]);
             }
         }
 
-        if (!empty($validated['invoice_id'])) {
-            $invoice = Invoice::find($validated['invoice_id']);
+        DB::transaction(function () use ($request, $validated, $payment, $invoice) {
+            $data = [
+                'amount' => $validated['amount'],
+                'payment_date' => $validated['payment_date'],
+                'payment_method' => $validated['payment_method'],
+                'transaction_id' => $validated['transaction_id'] ?? null,
+                'bank_account' => $validated['bank_account'] ?? null,
+                'status' => $validated['status'],
+                'notes' => $validated['notes'] ?? null,
+            ];
 
-            if (!$invoice) {
-                return back()
-                ->withInput()
-                ->withErrors([
-                    'invoice_id' => 'Selected invoice was not found.',
-                ]);
+            if ($request->hasFile('attachment')) {
+                if ($payment->attachment) {
+                    Storage::disk('public')->delete($payment->attachment);
+                }
+
+                $data['attachment'] = $request
+                ->file('attachment')
+                ->store('payments', 'public');
             }
-        }
 
-        if ($request->hasFile('attachment')) {
-            if ($payment->attachment) {
-                Storage::disk('public')->delete($payment->attachment);
-            }
+            $payment->update($data);
 
-            $validated['attachment'] = $request
-            ->file('attachment')
-            ->store('payments', 'public');
-        }
-
-        $payment->update($validated);
+            $this->updateInvoicePaymentStatus($invoice->fresh());
+        });
 
         return redirect()
         ->route('admin.payments.index')
@@ -461,32 +584,180 @@ class PaymentController extends Controller
 
         $this->authorizePaymentAccess($payment);
 
-        $payment->delete();
+        $invoice = $payment->invoice;
+
+        DB::transaction(function () use ($payment, $invoice) {
+            $payment->delete();
+
+            if ($invoice) {
+                $this->updateInvoicePaymentStatus($invoice->fresh());
+            }
+        });
 
         return redirect()
         ->route('admin.payments.index')
-        ->with('success', 'Payment deleted successfully.');
+        ->with('success', 'Payment moved to trash successfully.');
+    }
+
+    public function trash()
+    {
+        $this->checkPermission('Payments Delete');
+
+        $query = Payment::onlyTrashed()->with([
+            'client',
+            'project',
+            'invoice',
+            'creator',
+        ]);
+
+        if (!$this->isSuperAdmin()) {
+            $query->where('created_by', Auth::id());
+        }
+
+        $payments = $query
+        ->latest('deleted_at')
+        ->paginate(15);
+
+        return view('admin.payments.trash', compact('payments'));
+    }
+
+    public function restore($id)
+    {
+        $this->checkPermission('Payments Restore');
+
+        $payment = Payment::onlyTrashed()->findOrFail($id);
+
+        if (
+            !$this->isSuperAdmin() &&
+            (int) $payment->created_by !== (int) Auth::id()
+        ) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($payment) {
+            $payment->restore();
+
+            $invoice = Invoice::find($payment->invoice_id);
+
+            if ($invoice) {
+                $this->updateInvoicePaymentStatus($invoice->fresh());
+            }
+        });
+
+        return redirect()
+        ->route('admin.payments.trash')
+        ->with('success', 'Payment restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $this->checkPermission('Payments Force Delete');
+
+        $payment = Payment::onlyTrashed()->findOrFail($id);
+
+        if (
+            !$this->isSuperAdmin() &&
+            (int) $payment->created_by !== (int) Auth::id()
+        ) {
+            abort(403);
+        }
+
+        $invoice = Invoice::find($payment->invoice_id);
+
+        DB::transaction(function () use ($payment, $invoice) {
+            if ($payment->attachment) {
+                Storage::disk('public')->delete($payment->attachment);
+            }
+
+            $payment->forceDelete();
+
+            if ($invoice) {
+                $this->updateInvoicePaymentStatus($invoice->fresh());
+            }
+        });
+
+        return redirect()
+        ->route('admin.payments.trash')
+        ->with('success', 'Payment permanently deleted.');
+    }
+
+    private function calculatePaidAmount(Invoice $invoice): float
+    {
+        return (float) Payment::where('invoice_id', $invoice->id)
+        ->where('status', 'completed')
+        ->sum('amount');
+    }
+
+    private function calculateRemainingDue(Invoice $invoice): float
+    {
+        $paidAmount = $this->calculatePaidAmount($invoice);
+
+        return max(
+            (float) $invoice->total - $paidAmount,
+            0
+        );
+    }
+
+    private function updateInvoicePaymentStatus(Invoice $invoice): void
+    {
+        if ($invoice->status === 'Cancelled') {
+            return;
+        }
+
+        $paidAmount = $this->calculatePaidAmount($invoice);
+        $total = (float) $invoice->total;
+
+        if ($total > 0 && $paidAmount >= $total) {
+            $invoice->update([
+                'status' => 'Paid',
+            ]);
+
+            return;
+        }
+
+        if ($paidAmount > 0) {
+            $invoice->update([
+                'status' => 'Partially Paid',
+            ]);
+
+            return;
+        }
+
+        if (in_array($invoice->status, ['Paid', 'Partially Paid'], true)) {
+            $invoice->update([
+                'status' => 'Draft',
+            ]);
+        }
     }
 
     private function generatePaymentNumber(): string
     {
-        return DB::transaction(function () {
-            $lastPayment = Payment::withTrashed()
-            ->lockForUpdate()
-            ->orderByDesc('id')
-            ->first();
+        $lastPayment = Payment::withTrashed()
+        ->orderByDesc('id')
+        ->first();
 
-            $nextNumber = $lastPayment
-            ? $lastPayment->id + 1
-            : 1;
+        $nextNumber = $lastPayment
+        ? $lastPayment->id + 1
+        : 1;
 
-            return 'PAY-' . str_pad(
+        do {
+            $paymentNumber = 'PAY-' . str_pad(
                 $nextNumber,
                 5,
                 '0',
                 STR_PAD_LEFT
             );
-        });
+
+            $exists = Payment::withTrashed()
+            ->where('payment_number', $paymentNumber)
+            ->exists();
+
+            if ($exists) {
+                $nextNumber++;
+            }
+        } while ($exists);
+
+        return $paymentNumber;
     }
 
     private function authorizePaymentAccess(Payment $payment): void

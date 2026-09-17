@@ -43,6 +43,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Users Create')
     ->name('users.store');
 
+    Route::get('/users/trash', [UserController::class, 'trash'])
+    ->middleware('permission:Users Delete')
+    ->name('users.trash');
+
     Route::get('/users/{id}', [UserController::class, 'show'])
     ->middleware('permission:Users View')
     ->name('users.show');
@@ -61,7 +65,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::patch('/users/{id}/status', [UserController::class, 'changeStatus'])
     ->middleware('permission:Users Edit')
-    ->name('users.statu');
+    ->name('users.status');
 
     Route::delete('/users/{id}', [UserController::class, 'destroy'])
     ->middleware('permission:Users Delete')
@@ -87,6 +91,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Roles Create')
     ->name('roles.store');
 
+    Route::get('/roles/trash', [RoleController::class, 'trash'])
+    ->middleware('permission:Roles Delete')
+    ->name('roles.trash');
+
     Route::get('/roles/{id}', [RoleController::class, 'show'])
     ->middleware('permission:Roles View')
     ->name('roles.show');
@@ -110,6 +118,14 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/roles/{id}', [RoleController::class, 'destroy'])
     ->middleware('permission:Roles Delete')
     ->name('roles.destroy');
+
+    Route::patch('/roles/{id}/restore', [RoleController::class, 'restore'])
+    ->middleware('permission:Roles Restore')
+    ->name('roles.restore');
+
+    Route::delete('/roles/{id}/force-delete', [RoleController::class, 'forceDelete'])
+    ->middleware('permission:Roles Force Delete')
+    ->name('roles.forceDelete');
 
     Route::get('/permissions', [PermissionController::class, 'index'])
     ->middleware('permission:Roles View')
@@ -155,6 +171,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Leads Create')
     ->name('leads.import');
 
+    Route::get('/leads-trash', [LeadController::class, 'trash'])
+    ->middleware('permission:Leads Delete')
+    ->name('leads.trash');
+
     Route::get('/leads/{lead}', [LeadController::class, 'show'])
     ->middleware('permission:Leads View')
     ->name('leads.show');
@@ -179,10 +199,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Leads Delete')
     ->name('leads.destroy');
 
-    Route::get('/leads-trash', [LeadController::class, 'trash'])
-    ->middleware('permission:Leads Delete')
-    ->name('leads.trash');
-
     Route::patch('/leads/{id}/restore', [LeadController::class, 'restore'])
     ->middleware('permission:Leads Delete')
     ->name('leads.restore');
@@ -190,6 +206,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/leads/{id}/force-delete', [LeadController::class, 'forceDelete'])
     ->middleware('permission:Leads Delete')
     ->name('leads.forceDelete');
+
+
 
     Route::get('/clients', [ClientController::class, 'index'])
     ->middleware('permission:Clients View')
@@ -206,6 +224,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/clients/import', [ClientController::class, 'import'])
     ->middleware('permission:Clients Create')
     ->name('clients.import');
+
+    Route::get('/clients-trash', [ClientController::class, 'trash'])
+    ->middleware('permission:Clients Delete')
+    ->name('clients.trash');
 
     Route::get('/clients/{client}', [ClientController::class, 'show'])
     ->middleware('permission:Clients View')
@@ -225,15 +247,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::patch('/clients/{client}/status', [ClientController::class, 'changeStatus'])
     ->middleware('permission:Clients Edit')
-    ->name('clients.status');
+    ->name('clients.changeStatus');
 
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])
     ->middleware('permission:Clients Delete')
     ->name('clients.destroy');
-
-    Route::get('/clients-trash', [ClientController::class, 'trash'])
-    ->middleware('permission:Clients Delete')
-    ->name('clients.trash');
 
     Route::patch('/clients/{id}/restore', [ClientController::class, 'restore'])
     ->middleware('permission:Clients Delete')
@@ -242,8 +260,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/clients/{id}/force-delete', [ClientController::class, 'forceDelete'])
     ->middleware('permission:Clients Delete')
     ->name('clients.forceDelete');
+    
 
-    Route::get('/followups', [FollowUpController::class, 'index'])
+
+        Route::get('/followups', [FollowUpController::class, 'index'])
     ->middleware('permission:Follow Ups View')
     ->name('followups.index');
 
@@ -254,6 +274,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/followups', [FollowUpController::class, 'store'])
     ->middleware('permission:Follow Ups Create')
     ->name('followups.store');
+
+    Route::get('/followups/trash', [FollowUpController::class, 'trash'])
+    ->middleware('permission:Follow Ups Delete')
+    ->name('followups.trash');
 
     Route::get('/followups/{followup}', [FollowUpController::class, 'show'])
     ->middleware('permission:Follow Ups View')
@@ -279,29 +303,57 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Follow Ups Delete')
     ->name('followups.destroy');
 
+    Route::patch('/followups/{id}/restore', [FollowUpController::class, 'restore'])
+    ->middleware('permission:Follow Ups Delete')
+    ->name('followups.restore');
+
+    Route::delete('/followups/{id}/force-delete', [FollowUpController::class, 'forceDelete'])
+    ->middleware('permission:Follow Ups Delete')
+    ->name('followups.forceDelete');
+
     Route::get('/projects', [ProjectController::class, 'index'])
+    ->middleware('permission:Projects View')
     ->name('projects.index');
 
     Route::get('/projects/create', [ProjectController::class, 'create'])
+    ->middleware('permission:Projects Create')
     ->name('projects.create');
 
     Route::post('/projects', [ProjectController::class, 'store'])
+    ->middleware('permission:Projects Create')
     ->name('projects.store');
 
+    Route::get('/projects/trash', [ProjectController::class, 'trash'])
+    ->middleware('permission:Projects Delete')
+    ->name('projects.trash');
+
     Route::get('/projects/{project}', [ProjectController::class, 'show'])
+    ->middleware('permission:Projects View')
     ->name('projects.show');
 
     Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
+    ->middleware('permission:Projects Edit')
     ->name('projects.edit');
 
     Route::put('/projects/{project}', [ProjectController::class, 'update'])
+    ->middleware('permission:Projects Edit')
     ->name('projects.update');
 
     Route::patch('/projects/{project}', [ProjectController::class, 'update'])
+    ->middleware('permission:Projects Edit')
     ->name('projects.update.patch');
 
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])
+    ->middleware('permission:Projects Delete')
     ->name('projects.destroy');
+
+    Route::patch('/projects/{id}/restore', [ProjectController::class, 'restore'])
+    ->middleware('permission:Projects Delete')
+    ->name('projects.restore');
+
+    Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])
+    ->middleware('permission:Projects Delete')
+    ->name('projects.forceDelete');
 
     Route::prefix('quotations')->name('quotations.')->group(function () {
 
@@ -381,7 +433,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         ->name('update');
 
         Route::patch('/{invoice}/status', [InvoiceController::class, 'changeStatus'])
-        ->middleware('permission:Invoices Edit')
+        ->middleware('permission:Invoices Status')
         ->name('changeStatus');
 
         Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])
@@ -389,12 +441,14 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         ->name('destroy');
 
         Route::patch('/{invoice}/restore', [InvoiceController::class, 'restore'])
-        ->middleware('permission:Invoices Delete')
+        ->middleware('permission:Invoices Restore')
         ->name('restore');
 
         Route::delete('/{invoice}/force-delete', [InvoiceController::class, 'forceDelete'])
-        ->middleware('permission:Invoices Delete')
+        ->middleware('permission:Invoices Force Delete')
         ->name('forceDelete');
+        
+        
     });
 
     Route::get('/payments', [PaymentController::class, 'index'])
@@ -409,6 +463,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Payments Create')
     ->name('payments.store');
 
+    Route::get('/payments/trash', [PaymentController::class, 'trash'])
+    ->middleware('permission:Payments Delete')
+    ->name('payments.trash');
+
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])
     ->middleware('permission:Payments View')
     ->name('payments.show');
@@ -421,25 +479,19 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     ->middleware('permission:Payments Edit')
     ->name('payments.update');
 
-    Route::patch('/payments/{payment}', [PaymentController::class, 'update'])
-    ->middleware('permission:Payments Edit')
-    ->name('payments.update.patch');
-
     Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])
     ->middleware('permission:Payments Delete')
     ->name('payments.destroy');
 
-    Route::get('/payments/trash', [PaymentController::class, 'trash'])
-    ->middleware('permission:Payments Delete')
-    ->name('payments.trash');
-
     Route::patch('/payments/{payment}/restore', [PaymentController::class, 'restore'])
-    ->middleware('permission:Payments Delete')
+    ->middleware('permission:Payments Restore')
     ->name('payments.restore');
 
     Route::delete('/payments/{payment}/force-delete', [PaymentController::class, 'forceDelete'])
-    ->middleware('permission:Payments Delete')
+    ->middleware('permission:Payments Force Delete')
     ->name('payments.forceDelete');
+    
+
 
     Route::get('/reports/leads', [ReportController::class, 'leadReport'])
     ->middleware('permission:Reports View')

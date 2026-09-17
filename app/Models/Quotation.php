@@ -49,4 +49,9 @@ class Quotation extends Model
     {
         return $this->hasMany(QuotationItem::class)->orderBy('position');
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }
