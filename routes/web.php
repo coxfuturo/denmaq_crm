@@ -263,7 +263,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     
 
 
-        Route::get('/followups', [FollowUpController::class, 'index'])
+    Route::get('/followups', [FollowUpController::class, 'index'])
     ->middleware('permission:Follow Ups View')
     ->name('followups.index');
 
@@ -496,6 +496,59 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/reports/leads', [ReportController::class, 'leadReport'])
     ->middleware('permission:Reports View')
     ->name('reports.leads');
+
+    Route::get('/reports/leads/create', [ReportController::class, 'leadCreate'])
+    ->middleware('permission:Leads Create')
+    ->name('reports.leads.create');
+
+    Route::post('/reports/leads', [ReportController::class, 'leadStore'])
+    ->middleware('permission:Leads Create')
+    ->name('reports.leads.store');
+
+    Route::get('/reports/leads/trash', [ReportController::class, 'leadTrash'])
+    ->middleware('permission:Leads Restore')
+    ->name('reports.leads.trash');
+
+    Route::delete('/reports/leads/trash/empty', [ReportController::class, 'leadEmptyTrash'])
+    ->middleware('permission:Leads Force Delete')
+    ->name('reports.leads.trash.empty');
+
+    Route::get('/reports/leads/{id}', [ReportController::class, 'leadShow'])
+    ->whereNumber('id')
+    ->middleware('permission:Reports View')
+    ->name('reports.leads.show');
+
+    Route::get('/reports/leads/{id}/edit', [ReportController::class, 'leadEdit'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Edit')
+    ->name('reports.leads.edit');
+
+    Route::put('/reports/leads/{id}', [ReportController::class, 'leadUpdate'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Edit')
+    ->name('reports.leads.update');
+
+    Route::delete('/reports/leads/{id}', [ReportController::class, 'leadDelete'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Delete')
+    ->name('reports.leads.delete');
+
+    Route::patch('/reports/leads/{id}/status', [ReportController::class, 'leadChangeStatus'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Status')
+    ->name('reports.leads.status');
+
+    Route::patch('/reports/leads/{id}/restore', [ReportController::class, 'leadRestore'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Restore')
+    ->name('reports.leads.restore');
+
+    Route::delete('/reports/leads/{id}/force-delete', [ReportController::class, 'leadForceDelete'])
+    ->whereNumber('id')
+    ->middleware('permission:Leads Force Delete')
+    ->name('reports.leads.force-delete');
+
+    
 
     Route::get('/reports/sales', [ReportController::class, 'salesReport'])
     ->middleware('permission:Reports View')
